@@ -7,6 +7,8 @@ export default defineConfig({
     dts({
       tsconfigPath: resolve(import.meta.dirname, 'tsconfig.build.json'),
       entryRoot: resolve(import.meta.dirname, 'src'),
+      // One declaration file: no relative imports, so `nodenext` consumers resolve it too.
+      bundleTypes: true,
     }),
   ],
   build: {
