@@ -1,5 +1,11 @@
 # @dskripchenko/diagrams
 
+## 1.0.1
+
+### Patch Changes
+
+- dd90fda: Under jsdom (test runners) the glyph-table measurer is used straight away instead of probing a canvas, which jsdom reports as "Not implemented".
+
 ## 1.0.0
 
 ### Major Changes
