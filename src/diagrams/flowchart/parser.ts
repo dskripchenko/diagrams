@@ -396,7 +396,7 @@ export function parseFlowchart(source: string): Flowchart {
 
     // A chain of node groups joined by edges.
     const cursor = new Cursor(s)
-    let groups: NodeRef[][] = []
+    const groups: NodeRef[][] = []
     const readGroup = (): NodeRef[] => {
       const group: NodeRef[] = []
       for (;;) {
@@ -437,7 +437,6 @@ export function parseFlowchart(source: string): Flowchart {
         }
       }
     })
-    groups = []
   }
   if (stack.length > 0) {
     throw new DiagramError(`Subgraph "${stack[stack.length - 1]!.id}" is not closed`, 0, 0, 'Add "end".')
@@ -475,6 +474,5 @@ export function parseFlowchart(source: string): Flowchart {
     }
     node.link = { href, tooltip: c.tooltip, target: c.target }
   }
-  for (const c of chart.classDefs.keys()) void c
   return chart
 }
