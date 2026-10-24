@@ -1,0 +1,8 @@
+flowchart LR
+    classDef warn fill:#fde68a,stroke:#b45309,color:#78350f
+    A:::warn --> B --> C
+    style B fill:#bbf7d0,stroke:#15803d,stroke-width:3px
+    class C warn
+    linkStyle 1 stroke:#dc2626,stroke-width:2px
+    click A href "https://example.com" "Открыть"
+    D["`**Жирный** и *курсив* в markdown-строке, который переносится по ширине`"] --> A

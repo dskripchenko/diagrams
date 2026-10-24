@@ -56,6 +56,8 @@ const ASCII_WIDTHS = [
   222, 833, 556, 556, 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584,
 ]
 
+const SYSTEM_FONT_FACTOR = 1.06
+
 /* Cyrillic letters that are noticeably narrower or wider than the average. */
 const CYRILLIC_NARROW = new Set('гзтэсеё'.split(''))
 const CYRILLIC_WIDE = new Set('жмшщюыЖМШЩЮЫФф'.split(''))
@@ -94,7 +96,9 @@ export const approximateMeasurer: TextMeasurer = (text, font) => {
   for (const ch of text) {
     units += glyphWidth(ch)
   }
-  let width = (units / 1000) * font.size
+  // The table is Arial's; the system UI fonts the stylesheet asks for first
+  // (San Francisco, Segoe UI, Roboto) run a few percent wider.
+  let width = (units / 1000) * font.size * SYSTEM_FONT_FACTOR
   if (font.weight === 'bold') {
     width *= 1.07
   }
@@ -359,12 +363,16 @@ export function renderLabel(
             {
               'font-weight': run.bold ? 'bold' : undefined,
               'font-style': run.italic ? 'italic' : undefined,
+              // Not inherited in WebKit either; see the line below.
+              'dominant-baseline': 'central',
             },
             [txt(run.text)],
           )
         : txt(run.text),
     )
-    return el('tspan', { x, y: baseline }, runs.length > 0 ? runs : [txt('')])
+    // `dominant-baseline` again on each line: SVG 1.1 does not inherit it, and
+    // WebKit follows 1.1 — without this every line sits a third of an em high.
+    return el('tspan', { x, y: baseline, 'dominant-baseline': 'central' }, runs.length > 0 ? runs : [txt('')])
   })
   return el(
     'text',

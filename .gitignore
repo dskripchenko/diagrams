@@ -5,3 +5,4 @@ coverage
 *.local
 .npmrc
 tests/browser/output
+.claude/

@@ -1,0 +1,9 @@
+flowchart TD
+    Start([Начало]) --> Read[Прочитать заявку]
+    Read --> Valid{Заявка корректна?}
+    Valid -- Да --> Process[Обработать]
+    Valid -- Нет --> Fix[Вернуть на доработку]
+    Fix --> Read
+    Process --> Notify[Уведомить клиента]
+    Notify --> Done([Конец])
+    Process -.-> Log[(Журнал)]

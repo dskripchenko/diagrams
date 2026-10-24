@@ -1,0 +1,21 @@
+sequenceDiagram
+    box Lavender Frontend
+        actor U as User
+        participant W as Web app
+    end
+    box rgb(240, 248, 255) Backend
+        participant A as API
+        participant Q as Queue
+    end
+    participant Ext as External service
+    U->>W: click "Buy"
+    W->>A: create order
+    create participant P as Payment
+    A->>P: charge card
+    P-->>A: ok
+    A->>Q: enqueue receipt
+    destroy P
+    A-xP: close session
+    create actor R as Reviewer
+    Q->>R: approve?
+    R-->>Ext: notify

@@ -1,0 +1,32 @@
+sequenceDiagram
+    participant Client
+    participant API
+    participant Worker
+    loop Every minute
+        Client->>API: poll status
+        alt job is done
+            API-->>Client: 200 result
+        else still running
+            API-->>Client: 202 pending
+        else failed
+            API-->>Client: 500 error
+        end
+    end
+    rect rgb(220, 235, 255)
+        par Notify
+            API->>Worker: email
+        and
+            API->>Worker: sms
+        end
+    end
+    critical Establish connection
+        API->>Worker: connect
+    option Network timeout
+        API->>API: log error
+    end
+    opt Extra response
+        Worker-->>API: details
+    end
+    break when the queue is full
+        API-->>Client: 503
+    end

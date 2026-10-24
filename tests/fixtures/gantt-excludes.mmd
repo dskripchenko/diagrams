@@ -1,0 +1,12 @@
+gantt
+    title Working days only
+    dateFormat YYYY-MM-DD
+    excludes weekends, 2024-05-01
+    tickInterval 1week
+    axisFormat %e %b
+    section Sprint 1
+    Planning     : p1, 2024-04-29, 2d
+    Implementation (долгая задача с длинным названием) : i1, after p1, 6d
+    section Sprint 2
+    Testing      : t1, after i1, 4d
+    Deploy       :milestone, after t1, 0d

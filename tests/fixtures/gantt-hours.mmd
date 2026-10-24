@@ -1,0 +1,11 @@
+gantt
+    title Release night
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section Prep
+    Backup databases  : a1, 20:00, 45m
+    Freeze traffic    : a2, after a1, 15m
+    section Deploy
+    Migrations        :crit, a3, after a2, 30m
+    Rollout           :crit, active, a4, after a3, 1h
+    Smoke tests       : a5, after a4, 20m

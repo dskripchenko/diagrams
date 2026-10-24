@@ -1,0 +1,14 @@
+flowchart LR
+  subgraph TOP[Платформа]
+    direction TB
+    subgraph B1[API]
+        direction RL
+        i1 -->f1
+    end
+    subgraph B2[Очереди]
+        direction BT
+        i2 -->f2
+    end
+  end
+  A[Клиент] --> TOP --> B[Хранилище]
+  B1 --> B2
