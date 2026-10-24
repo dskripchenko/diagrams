@@ -32,6 +32,8 @@ export interface LayoutEdge {
 export interface LayoutCluster {
   id: string
   parent?: string
+  /** Direction inside the cluster; honoured when no edge crosses its frame. */
+  direction?: Direction
   /** Room for the title, inside the top of the frame. */
   label?: { width: number; height: number }
 }
@@ -57,6 +59,9 @@ export interface EdgeRoute {
    * the diagram clips the ends against the actual shapes.
    */
   points: Point[]
+  /** The edge's ends when the layout fixed them (edges cut at a cluster frame). */
+  start?: Point
+  end?: Point
   /** Centre of the label, when the edge has one. */
   label?: Point
   /** The edge connects a node to itself; `points` is the whole loop. */

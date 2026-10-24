@@ -164,9 +164,48 @@ function crossingsBetween(g: Graph, upper: WNode[], lower: WNode[]): number {
   return crossings
 }
 
-export function totalCrossings(g: Graph, layers: WNode[][]): number {
+/**
+ * Edges that pass through a cluster they do not belong to: from the left of
+ * its block in one rank to the right of it in the next, or back. Counted as
+ * crossings, since that is what the reader sees — a line across a frame.
+ */
+function frameCrossingsBetween(g: Graph, upper: WNode[], lower: WNode[], parents: ClusterParents): number {
+  const ranges = (layer: WNode[]) => {
+    const out = new Map<string, { from: number; to: number }>()
+    layer.forEach((n, i) => {
+      for (const c of chain(n.cluster, parents)) {
+        const r = out.get(c)
+        if (r) r.to = i
+        else out.set(c, { from: i, to: i })
+      }
+    })
+    return out
+  }
+  const up = ranges(upper)
+  const down = ranges(lower)
+  if (up.size === 0 || down.size === 0) return 0
+  const pos = new Map(lower.map((n, i) => [n.id, i]))
+  let count = 0
+  upper.forEach((n, ui) => {
+    for (const e of g.out(n.id)) {
+      const li = pos.get(e.w)
+      if (li === undefined) continue
+      for (const [c, a] of up) {
+        const b = down.get(c)
+        if (!b) continue
+        if ((ui < a.from && li > b.to) || (ui > a.to && li < b.from)) count += 2
+      }
+    }
+  })
+  return count
+}
+
+export function totalCrossings(g: Graph, layers: WNode[][], parents: ClusterParents = new Map()): number {
   let total = 0
-  for (let i = 0; i + 1 < layers.length; i++) total += crossingsBetween(g, layers[i]!, layers[i + 1]!)
+  for (let i = 0; i + 1 < layers.length; i++) {
+    total += crossingsBetween(g, layers[i]!, layers[i + 1]!)
+    if (parents.size > 0) total += frameCrossingsBetween(g, layers[i]!, layers[i + 1]!, parents)
+  }
   return total
 }
 
@@ -205,7 +244,7 @@ export function order(g: Graph, parents: ClusterParents, iterations = 24): WNode
   assign(layers)
 
   let best = layers.map((l) => l.slice())
-  let bestCrossings = totalCrossings(g, layers)
+  let bestCrossings = totalCrossings(g, layers, parents)
   let sinceImprovement = 0
 
   for (let it = 0; it < iterations && bestCrossings > 0 && sinceImprovement < 4; it++) {
@@ -242,7 +281,7 @@ export function order(g: Graph, parents: ClusterParents, iterations = 24): WNode
       layers[i]!.forEach((n, j) => (n.order = j))
     }
     canonical = canonicalClusterOrder(layers, parents)
-    const crossings = totalCrossings(g, layers)
+    const crossings = totalCrossings(g, layers, parents)
     if (crossings < bestCrossings) {
       bestCrossings = crossings
       best = layers.map((l) => l.slice())

@@ -11,6 +11,7 @@ import { defaultMeasurer } from './core/text'
 import { header } from './core/scanner'
 import { parsePie, renderPie } from './diagrams/pie'
 import { parseGantt, renderGantt } from './diagrams/gantt'
+import { parseFlowchart, renderFlowchart } from './diagrams/flowchart'
 
 export { DiagramError } from './core/errors'
 export type { RenderOptions, RenderResult } from './core/document'
@@ -18,7 +19,7 @@ export type { TextMeasurer, FontSpec, TextSize } from './core/text'
 export { approximateMeasurer, defaultMeasurer } from './core/text'
 export { VARIABLES as THEME_VARIABLES } from './core/theme'
 
-export type DiagramType = 'pie' | 'gantt'
+export type DiagramType = 'pie' | 'gantt' | 'flowchart'
 
 interface DiagramModule {
   parse(source: string): unknown
@@ -29,11 +30,15 @@ const MODULES: Record<DiagramType, DiagramModule> = {
   pie: { parse: parsePie, render: renderPie as DiagramModule['render'] },
   // No `now`: the today line would make the output depend on the clock.
   gantt: { parse: parseGantt, render: renderGantt as DiagramModule['render'] },
+  flowchart: { parse: parseFlowchart, render: renderFlowchart as DiagramModule['render'] },
 }
 
 const KEYWORDS: Record<string, DiagramType> = {
   pie: 'pie',
   gantt: 'gantt',
+  flowchart: 'flowchart',
+  graph: 'flowchart',
+  'flowchart-elk': 'flowchart',
 }
 
 /** The diagram type a source declares on its first line, or null. */

@@ -17,6 +17,11 @@ export interface Spacing {
   edgeSep: number
   rankSep: number
   clusterPadding: number
+  /**
+   * Extra room on the left of a cluster's frame, by cluster: where LR and RL
+   * layouts keep the title, since their left becomes the drawing's top.
+   */
+  frameLeft?: ReadonlyMap<string, number>
 }
 
 function isDummy(n: WNode): boolean {
@@ -201,6 +206,7 @@ export function clusterFrames(
   g: Graph,
   parents: ClusterParents,
   padding: number,
+  frameLeft?: ReadonlyMap<string, number>,
 ): Map<string, { left: number; right: number }> {
   const children = childClusters(parents)
   const direct = new Map<string, WNode[]>()
@@ -229,7 +235,7 @@ export function clusterFrames(
       left = 0
       right = 0
     }
-    const frame = { left: left - padding, right: right + padding }
+    const frame = { left: left - padding - (frameLeft?.get(c) ?? 0), right: right + padding }
     frames.set(c, frame)
     return frame
   }
@@ -260,7 +266,7 @@ function compactClusters(g: Graph, layers: WNode[][], parents: ClusterParents, s
 
   const compact = (level: string | null): void => {
     for (const child of children.get(level) ?? []) compact(child)
-    const frames = clusterFrames(g, parents, s.clusterPadding)
+    const frames = clusterFrames(g, parents, s.clusterPadding, s.frameLeft)
 
     interface Unit {
       cluster: boolean

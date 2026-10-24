@@ -4,6 +4,6 @@ import { basename } from 'node:path'
 const { render, approximateMeasurer } = await import('../dist/index.mjs')
 mkdirSync('tests/browser/output', { recursive: true })
 for (const file of process.argv.slice(2)) {
-  const { svg } = render(readFileSync(file, 'utf8'), { measureText: approximateMeasurer })
+  let svg; try { ({ svg } = render(readFileSync(file, "utf8"), { measureText: approximateMeasurer })) } catch (e) { console.error(file, e.message); continue }
   writeFileSync(`tests/browser/output/${basename(file, '.mmd')}.svg`, svg)
 }

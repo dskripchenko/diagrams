@@ -28,7 +28,7 @@ export const MAX_EDGES = 2000
 
 const SELF_LOOP = 22
 
-export function layout(input: LayoutInput): LayoutResult {
+function layoutCore(input: LayoutInput): LayoutResult {
   const direction = input.direction ?? 'TB'
   const horizontal = direction === 'LR' || direction === 'RL'
   const spacing: Spacing = {
@@ -84,10 +84,13 @@ export function layout(input: LayoutInput): LayoutResult {
   const top = (c: string) => `\u0000top:${c}`
   const bottom = (c: string) => `\u0000bottom:${c}`
   const titleRoom = new Map<string, number>()
+  const frameLeft = new Map<string, number>()
+  spacing.frameLeft = frameLeft
   for (const c of clusters.values()) {
     const label = c.label ?? { width: 0, height: 0 }
     const titleHeight = label.height > 0 ? label.height + 6 : 0
     titleRoom.set(c.id, titleHeight)
+    if (horizontal) frameLeft.set(c.id, titleHeight)
     // The title sits at the top of the final drawing: the top border for TB,
     // the bottom one for BT (it ends up on top), and the frame's left side
     // for LR/RL (handled when the frames are measured).
@@ -125,8 +128,22 @@ export function layout(input: LayoutInput): LayoutResult {
   }
 
   // Real edges. An end that is a cluster attaches to its border.
+  // An edge to a cluster is laid out to a node inside it — the first one for
+  // an edge coming in, the last for one going out — and later cut where it
+  // crosses the frame. Laid out to the frame's border node instead, it would
+  // have to leave from the cluster's bottom rank whatever the drawing says.
+  const leaves = (c: string): string[] => {
+    const out: string[] = []
+    for (const n of input.nodes) if (n.cluster === c) out.push(n.id)
+    for (const k of clusters.values()) if ((k.parent ?? null) === c) out.push(...leaves(k.id))
+    return out
+  }
   const endpoint = (id: string, asSource: boolean): string => {
-    if (clusters.has(id)) return asSource ? bottom(id) : top(id)
+    if (clusters.has(id)) {
+      const inside = leaves(id)
+      if (inside.length === 0) return asSource ? bottom(id) : top(id)
+      return asSource ? inside[inside.length - 1]! : inside[0]!
+    }
     if (!g.nodes.has(id)) throw new DiagramError(`Edge refers to an unknown node "${id}"`)
     return id
   }
@@ -208,7 +225,7 @@ export function layout(input: LayoutInput): LayoutResult {
   position(g, layers, parents as ClusterParents, spacing)
 
   // Frames.
-  const frames = clusterFrames(g, parents as ClusterParents, spacing.clusterPadding)
+  const frames = clusterFrames(g, parents as ClusterParents, spacing.clusterPadding, spacing.frameLeft)
   const clusterBoxes = new Map<string, Box>()
   const descendants = new Map<string, WNode[]>()
   for (const n of g.nodes.values()) {
@@ -253,8 +270,7 @@ export function layout(input: LayoutInput): LayoutResult {
   for (const c of clusters.keys()) {
     const f = frames.get(c)!
     const v = vertical.get(c)!
-    let left = f.left
-    if (horizontal) left -= titleRoom.get(c) ?? 0
+    const left = f.left
     clusterBoxes.set(c, { x: (left + f.right) / 2, y: (v.top + v.bottom) / 2, width: f.right - left, height: v.bottom - v.top })
   }
 
@@ -320,12 +336,176 @@ export function layout(input: LayoutInput): LayoutResult {
     const route: EdgeRoute = { points: inner.map((n) => turn(n)) }
     const labelNode = inner.find((n) => n.dummy === 'label')
     if (labelNode) route.label = turn(labelNode)
+    if (clusters.has(e.from) || clusters.has(e.to)) {
+      clipAtClusters(route, turn(g.node(chain[0]!)), turn(g.node(chain[chain.length - 1]!)), {
+        from: clusters.has(e.from) ? clustersOut.get(e.from) : undefined,
+        to: clusters.has(e.to) ? clustersOut.get(e.to) : undefined,
+      })
+    }
     edges.set(e.id, route)
   }
 
   const width = horizontal ? H : W
   const height = horizontal ? W : H
   return { width, height, nodes, clusters: clustersOut, edges }
+}
+
+function inside(box: Box, p: Point): boolean {
+  return Math.abs(p.x - box.x) <= box.width / 2 && Math.abs(p.y - box.y) <= box.height / 2
+}
+
+/** Where the segment from `a` (outside) to `b` (inside) enters the box. */
+function entry(box: Box, a: Point, b: Point): Point {
+  let lo = 0
+  let hi = 1
+  // Bisection: robust, and precision far below a pixel after 30 steps.
+  for (let i = 0; i < 30; i++) {
+    const mid = (lo + hi) / 2
+    const p = { x: a.x + (b.x - a.x) * mid, y: a.y + (b.y - a.y) * mid }
+    if (inside(box, p)) hi = mid
+    else lo = mid
+  }
+  return { x: a.x + (b.x - a.x) * hi, y: a.y + (b.y - a.y) * hi }
+}
+
+/**
+ * Cuts an edge laid out to a node inside a cluster at the cluster's frame,
+ * and records the cut as the edge's explicit end.
+ */
+function clipAtClusters(route: EdgeRoute, start: Point, end: Point, frames: { from?: Box; to?: Box }): void {
+  let line = [start, ...route.points, end]
+  if (frames.to && !inside(frames.to, start)) {
+    for (let i = 1; i < line.length; i++) {
+      if (inside(frames.to, line[i]!)) {
+        const p = entry(frames.to, line[i - 1]!, line[i]!)
+        line = [...line.slice(0, i), p]
+        break
+      }
+    }
+    route.end = line[line.length - 1]
+  }
+  if (frames.from && !inside(frames.from, line[line.length - 1]!)) {
+    for (let i = line.length - 2; i >= 0; i--) {
+      if (inside(frames.from, line[i]!)) {
+        const p = entry(frames.from, line[i + 1]!, line[i]!)
+        line = [p, ...line.slice(i + 1)]
+        break
+      }
+    }
+    route.start = line[0]
+  }
+  route.points = line.slice(1, -1)
+}
+
+/**
+ * Lays out a graph, first taking out every cluster that no node outside it
+ * links into: such a cluster is laid out on its own — in its own direction,
+ * if it has one — and placed in its parent as a single box. This is what
+ * Mermaid does, and it is what makes `direction` inside a subgraph work.
+ * A cluster with edges crossing its frame stays part of the whole layout.
+ */
+export function layout(input: LayoutInput): LayoutResult {
+  const clusters = input.clusters ?? []
+  if (clusters.length === 0) return layoutCore(input)
+  const parent = new Map(clusters.map((c) => [c.id, c.parent ?? null]))
+  const within = (cluster: string | null | undefined, root: string): boolean => {
+    let c = cluster ?? null
+    let guard = 0
+    while (c !== null && guard++ <= clusters.length) {
+      if (c === root) return true
+      c = parent.get(c) ?? null
+    }
+    return false
+  }
+  const nodeCluster = new Map(input.nodes.map((n) => [n.id, n.cluster ?? null]))
+  // Where an edge end sits: a node's cluster, or the cluster itself for a cluster end.
+  const home = (id: string): { cluster: string | null; isCluster: boolean } =>
+    parent.has(id) ? { cluster: id, isCluster: true } : { cluster: nodeCluster.get(id) ?? null, isCluster: false }
+
+  const isolated = (c: string): boolean => {
+    for (const e of input.edges) {
+      const a = home(e.from)
+      const b = home(e.to)
+      const aIn = a.isCluster ? within(a.cluster, c) && a.cluster !== c : within(a.cluster, c)
+      const bIn = b.isCluster ? within(b.cluster, c) && b.cluster !== c : within(b.cluster, c)
+      // An edge to the cluster itself attaches to its frame: no crossing.
+      if (aIn !== bIn) {
+        const outsideEnd = aIn ? b : a
+        if (!(outsideEnd.isCluster && outsideEnd.cluster === c)) return false
+      }
+    }
+    return true
+  }
+  const extracted = clusters.filter((c) => isolated(c.id) && !clusters.some((o) => o.id !== c.id && within(c.id, o.id) && isolated(o.id)))
+  if (extracted.length === 0) return layoutCore(input)
+
+  const pad = input.clusterPadding ?? 12
+  const parentDirection = input.direction ?? 'TB'
+  const inner = new Map<string, { result: LayoutResult; title: number; width: number; height: number }>()
+  const removedNodes = new Set<string>()
+  const removedClusters = new Set<string>()
+  const removedEdges = new Set<string>()
+  for (const c of extracted) {
+    const sub: LayoutInput = {
+      ...input,
+      direction: c.direction ?? parentDirection,
+      nodes: input.nodes
+        .filter((n) => within(n.cluster, c.id))
+        .map((n) => ({ ...n, cluster: n.cluster === c.id ? undefined : n.cluster })),
+      clusters: clusters
+        .filter((k) => k.id !== c.id && within(k.id, c.id))
+        .map((k) => ({ ...k, parent: k.parent === c.id ? undefined : k.parent })),
+      edges: input.edges.filter((e) => {
+        const a = home(e.from)
+        const b = home(e.to)
+        const aIn = within(a.cluster, c.id) && !(a.isCluster && a.cluster === c.id)
+        const bIn = within(b.cluster, c.id) && !(b.isCluster && b.cluster === c.id)
+        return aIn && bIn
+      }),
+    }
+    for (const n of sub.nodes) removedNodes.add(n.id)
+    for (const k of sub.clusters ?? []) removedClusters.add(k.id)
+    removedClusters.add(c.id)
+    for (const e of sub.edges) removedEdges.add(e.id)
+    const result = layout(sub)
+    const title = c.label && c.label.height > 0 ? c.label.height + 6 : 0
+    const width = Math.max(result.width, c.label?.width ?? 0) + pad * 2
+    const height = result.height + pad * 2 + title
+    inner.set(c.id, { result, title, width, height })
+  }
+
+  const outer: LayoutInput = {
+    ...input,
+    nodes: [
+      ...input.nodes.filter((n) => !removedNodes.has(n.id)),
+      ...extracted.map((c) => ({ id: c.id, width: inner.get(c.id)!.width, height: inner.get(c.id)!.height, cluster: c.parent })),
+    ],
+    clusters: clusters.filter((k) => !removedClusters.has(k.id)),
+    edges: input.edges.filter((e) => !removedEdges.has(e.id)),
+  }
+  const result = layout(outer)
+
+  for (const c of extracted) {
+    const box = result.nodes.get(c.id)!
+    result.nodes.delete(c.id)
+    result.clusters.set(c.id, box)
+    const { result: r, title } = inner.get(c.id)!
+    const dx = box.x - box.width / 2 + (box.width - r.width) / 2
+    const dy = box.y - box.height / 2 + pad + title
+    const move = (p: Point): Point => ({ x: p.x + dx, y: p.y + dy })
+    for (const [id, b] of r.nodes) result.nodes.set(id, { ...b, ...move(b) })
+    for (const [id, b] of r.clusters) result.clusters.set(id, { ...b, ...move(b) })
+    for (const [id, route] of r.edges) {
+      result.edges.set(id, {
+        ...route,
+        points: route.points.map(move),
+        label: route.label && move(route.label),
+        start: route.start && move(route.start),
+        end: route.end && move(route.end),
+      })
+    }
+  }
+  return result
 }
 
 /** The innermost cluster containing both, or null. */
