@@ -364,7 +364,9 @@ export function renderLabel(
           )
         : txt(run.text),
     )
-    return el('tspan', { x, y: baseline }, runs.length > 0 ? runs : [txt('')])
+    // `dominant-baseline` again on each line: SVG 1.1 does not inherit it, and
+    // WebKit follows 1.1 — without this every line sits a third of an em high.
+    return el('tspan', { x, y: baseline, 'dominant-baseline': 'central' }, runs.length > 0 ? runs : [txt('')])
   })
   return el(
     'text',

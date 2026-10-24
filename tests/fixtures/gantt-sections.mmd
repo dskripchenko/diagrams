@@ -1,0 +1,16 @@
+gantt
+    title Product release
+    dateFormat YYYY-MM-DD
+    axisFormat %d %b
+    section Design
+    Discovery           :done, d1, 2024-03-01, 7d
+    Wireframes          :done, d2, after d1, 5d
+    Visual design       :active, d3, after d2, 8d
+    section Development
+    Backend API         :crit, b1, after d2, 14d
+    Frontend            :f1, after d3, 12d
+    Integration         :crit, active, i1, after b1 f1, 5d
+    section Release
+    Code freeze         :milestone, m1, after i1, 0d
+    QA and fixes        :crit, q1, after m1, 6d
+    Launch              :milestone, after q1, 0d
