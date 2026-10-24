@@ -43,7 +43,7 @@ function marker(prefix: string, kind: MarkerKind, start: boolean): SvgElement {
       ])
     case 'open-arrow':
       return el('marker', { ...common, viewBox: '0 0 10 10', refX: start ? 1 : 9, refY: 5, markerWidth: 10, markerHeight: 10 }, [
-        el('path', { class: 'dg-marker dg-marker-open', d: 'M1,1 L9,5 L1,9', transform: flip, fill: 'none', 'stroke-width': 1.5 }),
+        el('path', { class: 'dg-marker dg-marker-open', d: 'M1,1 L9,5 L1,9', transform: flip, style: 'fill:none', 'stroke-width': 1.5 }),
       ])
     case 'half-arrow':
       return el('marker', { ...common, viewBox: '0 0 10 10', refX: start ? 1 : 9, refY: 5, markerWidth: 10, markerHeight: 10 }, [
@@ -55,7 +55,7 @@ function marker(prefix: string, kind: MarkerKind, start: boolean): SvgElement {
       ])
     case 'cross':
       return el('marker', { ...common, viewBox: '0 0 10 10', refX: 5, refY: 5, markerWidth: 11, markerHeight: 11 }, [
-        el('path', { class: 'dg-marker', d: 'M1,1 L9,9 M1,9 L9,1', 'stroke-width': 2, fill: 'none' }),
+        el('path', { class: 'dg-marker', d: 'M1,1 L9,9 M1,9 L9,1', 'stroke-width': 2, style: 'fill:none' }),
       ])
   }
 }

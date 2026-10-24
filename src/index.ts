@@ -10,6 +10,7 @@ import { hashId, sanitizeId, type RenderOptions, type RenderResult } from './cor
 import { defaultMeasurer } from './core/text'
 import { header } from './core/scanner'
 import { parsePie, renderPie } from './diagrams/pie'
+import { parseSequence, renderSequence } from './diagrams/sequence'
 
 export { DiagramError } from './core/errors'
 export type { RenderOptions, RenderResult } from './core/document'
@@ -17,7 +18,7 @@ export type { TextMeasurer, FontSpec, TextSize } from './core/text'
 export { approximateMeasurer, defaultMeasurer } from './core/text'
 export { VARIABLES as THEME_VARIABLES } from './core/theme'
 
-export type DiagramType = 'pie'
+export type DiagramType = 'pie' | 'sequence'
 
 interface DiagramModule {
   parse(source: string): unknown
@@ -26,10 +27,12 @@ interface DiagramModule {
 
 const MODULES: Record<DiagramType, DiagramModule> = {
   pie: { parse: parsePie, render: renderPie as DiagramModule['render'] },
+  sequence: { parse: parseSequence, render: renderSequence as DiagramModule['render'] },
 }
 
 const KEYWORDS: Record<string, DiagramType> = {
   pie: 'pie',
+  sequenceDiagram: 'sequence',
 }
 
 /** The diagram type a source declares on its first line, or null. */
