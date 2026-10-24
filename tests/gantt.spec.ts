@@ -233,3 +233,16 @@ describe('gantt rendering', () => {
     expect(parse('gantt\n  A : 2024-01-01, 1d')).toMatchObject({ type: 'gantt', tasks: [{ name: 'A' }] })
   })
 })
+
+describe('today option', () => {
+  const src = 'gantt\n  dateFormat YYYY-MM-DD\n  A : 2026-01-01, 10d'
+  it('draws the today line only when asked', async () => {
+    const { render, approximateMeasurer } = await import('../src')
+    const plain = render(src, { measureText: approximateMeasurer }).svg
+    const marked = render(src, { measureText: approximateMeasurer, today: new Date(Date.UTC(2026, 0, 5)) }).svg
+    expect(marked).not.toBe(plain)
+    expect(marked.length).toBeGreaterThan(plain.length)
+    const off = render(src + '\n  todayMarker off', { measureText: approximateMeasurer, today: new Date(Date.UTC(2026, 0, 5)) }).svg
+    expect(off).toBe(render(src + '\n  todayMarker off', { measureText: approximateMeasurer }).svg)
+  })
+})

@@ -25,12 +25,18 @@ export type DiagramType = 'pie' | 'gantt' | 'flowchart' | 'sequence' | 'state'
 
 interface DiagramModule {
   parse(source: string): unknown
-  render(ast: never, measure: NonNullable<RenderOptions['measureText']>, id: string, title?: string): RenderResult
+  render(
+    ast: never,
+    measure: NonNullable<RenderOptions['measureText']>,
+    id: string,
+    title?: string,
+    today?: Date,
+  ): RenderResult
 }
 
 const MODULES: Record<DiagramType, DiagramModule> = {
   pie: { parse: parsePie, render: renderPie as DiagramModule['render'] },
-  // No `now`: the today line would make the output depend on the clock.
+  // The today line only with `options.today`: otherwise output would depend on the clock.
   gantt: { parse: parseGantt, render: renderGantt as DiagramModule['render'] },
   flowchart: { parse: parseFlowchart, render: renderFlowchart as DiagramModule['render'] },
   sequence: { parse: parseSequence, render: renderSequence as DiagramModule['render'] },
@@ -86,5 +92,5 @@ export function render(source: string, options: RenderOptions = {}): RenderResul
   const mod = moduleFor(source)
   const ast = mod.parse(source)
   const id = sanitizeId(options.idPrefix ?? hashId(source))
-  return mod.render(ast as never, options.measureText ?? defaultMeasurer(), id, options.title)
+  return mod.render(ast as never, options.measureText ?? defaultMeasurer(), id, options.title, options.today)
 }

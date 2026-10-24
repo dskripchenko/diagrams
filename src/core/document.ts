@@ -16,6 +16,11 @@ export interface RenderOptions {
   idPrefix?: string
   /** Accessible title; defaults to the diagram's own title or its type. */
   title?: string
+  /**
+   * Gantt charts: the date of the "today" line. Without it no line is drawn,
+   * so the output never depends on the clock.
+   */
+  today?: Date
 }
 
 export interface RenderResult {
