@@ -12,6 +12,7 @@ import { header } from './core/scanner'
 import { parsePie, renderPie } from './diagrams/pie'
 import { parseGantt, renderGantt } from './diagrams/gantt'
 import { parseFlowchart, renderFlowchart } from './diagrams/flowchart'
+import { parseSequence, renderSequence } from './diagrams/sequence'
 
 export { DiagramError } from './core/errors'
 export type { RenderOptions, RenderResult } from './core/document'
@@ -19,7 +20,7 @@ export type { TextMeasurer, FontSpec, TextSize } from './core/text'
 export { approximateMeasurer, defaultMeasurer } from './core/text'
 export { VARIABLES as THEME_VARIABLES } from './core/theme'
 
-export type DiagramType = 'pie' | 'gantt' | 'flowchart'
+export type DiagramType = 'pie' | 'gantt' | 'flowchart' | 'sequence'
 
 interface DiagramModule {
   parse(source: string): unknown
@@ -31,6 +32,7 @@ const MODULES: Record<DiagramType, DiagramModule> = {
   // No `now`: the today line would make the output depend on the clock.
   gantt: { parse: parseGantt, render: renderGantt as DiagramModule['render'] },
   flowchart: { parse: parseFlowchart, render: renderFlowchart as DiagramModule['render'] },
+  sequence: { parse: parseSequence, render: renderSequence as DiagramModule['render'] },
 }
 
 const KEYWORDS: Record<string, DiagramType> = {
@@ -39,6 +41,7 @@ const KEYWORDS: Record<string, DiagramType> = {
   flowchart: 'flowchart',
   graph: 'flowchart',
   'flowchart-elk': 'flowchart',
+  sequenceDiagram: 'sequence',
 }
 
 /** The diagram type a source declares on its first line, or null. */

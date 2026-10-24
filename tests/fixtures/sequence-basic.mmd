@@ -1,0 +1,13 @@
+sequenceDiagram
+    title Checkout
+    participant B as Browser
+    participant S as Server
+    participant DB as Database
+    B->>S: POST /orders
+    S->>DB: INSERT order
+    DB-->>S: id = 42
+    S-->>B: 201 Created
+    B-)S: track event (async)
+    S->>S: Recalculate totals
+    B-xDB: direct access
+    S<<->>DB: sync<br>both ways

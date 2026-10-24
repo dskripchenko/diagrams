@@ -50,6 +50,9 @@ export const VARIABLES: Readonly<Record<string, string>> = {
   '--dg-section-fill-0': 'rgba(99, 102, 241, 0.06)',
   '--dg-section-fill-1': 'rgba(100, 116, 139, 0.06)',
   '--dg-state-start': '#1f2937',
+  '--dg-lifeline': '#94a3b8',
+  '--dg-number-text': '#ffffff',
+  '--dg-rect-fill': 'rgba(148, 163, 184, 0.12)',
   '--dg-pie-stroke': '#ffffff',
   '--dg-pie-text': '#ffffff',
 }

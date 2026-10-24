@@ -1,0 +1,14 @@
+sequenceDiagram
+    autonumber
+    Alice->>+John: Hello John, how are you?
+    Alice->>+John: John, can you hear me?
+    John-->>-Alice: Hi Alice, I can hear you!
+    John-->>-Alice: I feel great!
+    Note right of John: Rational thoughts<br/>prevail!
+    activate Alice
+    Alice->>Bob: Привет, Боб
+    Note over Alice,Bob: A typical interaction that goes on for a long while and needs to wrap because it is very long
+    Bob--)Alice: ok
+    deactivate Alice
+    Note left of Alice: on the left
+    Bob->>Bob: self call
