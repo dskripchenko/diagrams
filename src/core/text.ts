@@ -125,7 +125,11 @@ function context(): Context2D | null {
     const g = globalThis as unknown as {
       OffscreenCanvas?: new (w: number, h: number) => { getContext(type: '2d'): Context2D | null }
       document?: { createElement(tag: 'canvas'): { getContext(type: '2d'): Context2D | null } }
+      navigator?: { userAgent?: string }
     }
+    // jsdom has a canvas element without an implementation and logs an error
+    // when asked for a context; the glyph table is the measurer there.
+    if (g.navigator?.userAgent?.includes('jsdom')) return canvasContext
     if (typeof g.OffscreenCanvas === 'function') {
       canvasContext = new g.OffscreenCanvas(1, 1).getContext('2d')
     } else if (g.document && typeof g.document.createElement === 'function') {
