@@ -1,0 +1,29 @@
+flowchart TD
+    A[Start] --> B{Is it?}
+    B -->|Yes| C[OK]
+    C --> D[Rethink]
+    D --> B
+    B ---->|No| E[End]
+    A --> F[Load config]
+    F --> G{Valid?}
+    G -->|no| H[Report error]
+    G -->|yes| I[Connect]
+    I --> J[Fetch users]
+    I --> K[Fetch orders]
+    I --> L[Fetch products]
+    J & K & L --> M[Merge]
+    M --> N{Any conflicts?}
+    N -->|yes| O[Resolve] --> M
+    N -->|no| P[Write report]
+    P --> Q[(Archive)]
+    P --> R[Notify]
+    R --> S[Email]
+    R --> T[Slack]
+    R --> U[Webhook]
+    H --> E
+    S & T & U --> E
+    subgraph checks[Checks]
+        V1[Schema] --> V2[Types] --> V3[Ranges]
+    end
+    G --> V1
+    V3 --> I

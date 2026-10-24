@@ -1,0 +1,20 @@
+flowchart LR
+    client([Клиентское приложение]) -->|HTTPS + подпись запроса| api
+    subgraph app[Сервис печати]
+        api[API] --> queue[(Очередь)]
+        queue --> worker[Воркер рендера]
+        worker --> pdf[php-pdf]
+        worker --> docx[php-docx]
+        pdf --> sign{Нужна подпись?}
+        sign -->|да| signer[Подписант PAdES]
+        sign -->|нет| store
+        signer --> store[(Хранилище)]
+    end
+    subgraph ext[Внешние сервисы]
+        tsa[TSA метка времени]
+        ocsp[OCSP / CRL]
+    end
+    signer -.-> tsa
+    signer -.-> ocsp
+    store -->|webhook| client
+    admin[Сервисная панель] --> api

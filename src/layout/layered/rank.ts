@@ -97,6 +97,39 @@ export function components(g: Graph): string[][] {
   return out
 }
 
+/**
+ * Network simplex leaves ties: a node whose incoming weight equals its
+ * outgoing weight costs the same anywhere between its neighbours, and the
+ * initial ranking puts it as low as it can go — far from where it is drawn
+ * from. Moving such a node up never makes the total longer (it shortens the
+ * incoming edges at least as much as it lengthens the outgoing ones), so
+ * every node with at least as much weight coming in as going out is pulled
+ * up against its predecessors, in topological order.
+ */
+function pullUp(g: Graph, ids: readonly string[]): void {
+  const indegree = new Map(ids.map((id) => [id, g.in(id).length]))
+  const queue = ids.filter((id) => indegree.get(id) === 0)
+  while (queue.length > 0) {
+    const id = queue.shift()!
+    const ins = g.in(id)
+    const outs = g.out(id)
+    if (ins.length > 0) {
+      const inWeight = ins.reduce((sum, e) => sum + e.weight, 0)
+      const outWeight = outs.reduce((sum, e) => sum + e.weight, 0)
+      if (inWeight >= outWeight) {
+        let target = -Infinity
+        for (const e of ins) target = Math.max(target, g.node(e.v).rank + e.minlen)
+        const n = g.node(id)
+        if (target < n.rank) n.rank = target
+      }
+    }
+    for (const e of outs) {
+      indegree.set(e.w, indegree.get(e.w)! - 1)
+      if (indegree.get(e.w) === 0) queue.push(e.w)
+    }
+  }
+}
+
 /** Assigns `rank` to every node: 0 is the top, each component starts at 0. */
 export function rank(g: Graph, maxIterations = 2000): void {
   for (const comp of components(g)) {
@@ -105,6 +138,10 @@ export function rank(g: Graph, maxIterations = 2000): void {
     let min = Infinity
     for (const r of ranks.values()) min = Math.min(min, r)
     for (const [id, r] of ranks) g.node(id).rank = r - min
+    pullUp(g, comp)
+    let low = Infinity
+    for (const id of comp) low = Math.min(low, g.node(id).rank)
+    for (const id of comp) g.node(id).rank -= low
   }
 }
 
