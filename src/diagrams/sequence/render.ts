@@ -73,10 +73,23 @@ function actor(a: ActorGeom): SvgElement {
   ])
 }
 
+/** A block's outline and section rules: drawn under the activation bars. */
 function frame(f: FrameGeom): SvgElement {
-  const parts: (SvgElement | null)[] = [
+  const parts: SvgElement[] = [
     el('rect', { class: 'dg-block', x: f.left, y: f.top, width: f.right - f.left, height: f.bottom - f.top }),
   ]
+  for (const section of f.sections) {
+    parts.push(el('line', { class: 'dg-block-sep', x1: f.left, y1: section.y, x2: f.right, y2: section.y }))
+  }
+  return el('g', { class: `dg-frame dg-frame-${f.block}` }, parts)
+}
+
+/**
+ * A block's tab and guard texts: drawn over the activation bars, which would
+ * otherwise cut through a label like "loop" that sits on a lifeline.
+ */
+function frameLabels(f: FrameGeom): SvgElement {
+  const parts: (SvgElement | null)[] = []
   if (f.tab) {
     const w = f.tabWidth
     const tab = [
@@ -102,7 +115,6 @@ function frame(f: FrameGeom): SvgElement {
     )
   }
   for (const section of f.sections) {
-    parts.push(el('line', { class: 'dg-block-sep', x1: f.left, y1: section.y, x2: f.right, y2: section.y }))
     if (section.guard) {
       parts.push(
         renderLabel(section.guard, (f.left + f.right) / 2, section.y + 4 + section.guard.height / 2, {
@@ -111,7 +123,7 @@ function frame(f: FrameGeom): SvgElement {
       )
     }
   }
-  return el('g', { class: `dg-frame dg-frame-${f.block}` }, parts)
+  return el('g', { class: `dg-frame-labels dg-frame-${f.block}` }, parts.filter((p): p is SvgElement => !!p))
 }
 
 function message(m: MessageGeom, prefix: string): SvgElement {
@@ -204,6 +216,7 @@ export function renderSequenceLayout(
         el('rect', { class: 'dg-activation', x: a.left, y: a.top, width: ACTIVATION_WIDTH, height: a.bottom - a.top }),
       ),
     ),
+    el('g', { class: 'dg-frame-label-layer' }, layout.frames.map(frameLabels)),
     el('g', { class: 'dg-messages' }, layout.messages.map((m) => message(m, id))),
     el(
       'g',
