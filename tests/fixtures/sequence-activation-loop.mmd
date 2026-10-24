@@ -1,0 +1,17 @@
+sequenceDiagram
+    autonumber
+    actor A as Author
+    participant P as Panel
+    participant Q as Queue
+    A->>+P: Publish
+    P->>Q: Render preview
+    loop Every 5 s
+        P->>Q: Status?
+    end
+    alt Rendered
+        Q-->>P: Done
+        P-->>A: Published
+    else Failed
+        Q-->>P: Error
+        P-->>-A: Try again later
+    end
