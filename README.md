@@ -28,7 +28,7 @@ element.innerHTML = svg
 ## Why another renderer
 
 - **Zero dependencies.** Mermaid pulls in d3, dagre, DOMPurify and more —
-  megabytes. This package is one module under 75 KB gzipped before your
+  megabytes. This package is one module of about 100 KB gzipped before your
   bundler minifies it, layout engine included.
 - **Safe by construction.** Every label and attribute is escaped by the one
   SVG builder that produces the output; HTML in labels is shown as text.
