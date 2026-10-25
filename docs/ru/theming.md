@@ -40,6 +40,16 @@
     --dg-grid: #1f2937;
     --dg-lifeline: #475569;
     --dg-state-start: #e2e8f0;
+    /* C4: заливки светлее и светлые контуры — фигуры видны на тёмной странице */
+    --dg-c4-person-fill: #1f5c99;
+    --dg-c4-person-stroke: #6aa5e0;
+    --dg-c4-system-fill: #1f6fbf;
+    --dg-c4-system-stroke: #7bb4ee;
+    --dg-c4-container-fill: #3b7fc0;
+    --dg-c4-container-stroke: #93c5fd;
+    --dg-c4-component-stroke: #bfdbfe;
+    --dg-c4-external-fill: #5f6670;
+    --dg-c4-external-stroke: #9ca3af;
   }
 }
 ```

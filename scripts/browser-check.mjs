@@ -25,7 +25,8 @@ const DARK = `
     --dg-edge-label-fill: #0f172a; --dg-note-fill: #422006; --dg-note-stroke: #ca8a04; --dg-note-text: #fef9c3;
     --dg-actor-fill: #1e1b4b; --dg-actor-stroke: #818cf8; --dg-activation-fill: #312e81;
     --dg-block-stroke: #64748b; --dg-block-label-fill: #1e293b; --dg-grid: #1f2937;
-    --dg-state-start: #e2e8f0; --dg-lifeline: #475569; }`
+    --dg-state-start: #e2e8f0; --dg-lifeline: #475569;
+    --dg-c4-person-fill: #1f5c99; --dg-c4-person-stroke: #6aa5e0; --dg-c4-system-fill: #1f6fbf; --dg-c4-system-stroke: #7bb4ee; --dg-c4-container-fill: #3b7fc0; --dg-c4-container-stroke: #93c5fd; --dg-c4-component-stroke: #bfdbfe; --dg-c4-external-fill: #5f6670; --dg-c4-external-stroke: #9ca3af; }`
 
 const html = `<!doctype html><meta charset="utf-8">
 <style>body{margin:0;font-family:system-ui} .case{padding:16px;display:inline-block} ${DARK}</style>
@@ -136,6 +137,34 @@ const html = `<!doctype html><meta charset="utf-8">
       }
     }
     c4.forEach((a, i) => c4.slice(i + 1).forEach((b) => overlap(a.box, b.box) && problems.push({ overlap: [a.id, b.id] })))
+    // C4 relations: no path through an element it does not connect or through
+    // a frame title; no label over another label or over an element.
+    if (c4.length > 0) {
+      const shrink = (b, m) => ({ x: b.x + m, y: b.y + m, width: b.width - 2 * m, height: b.height - 2 * m })
+      const within = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height
+      const groups = [...svg.querySelectorAll('.dg-c4-element')].map((g) => ({ id: g.getAttribute('data-id'), box: shrink(g.getBBox(), 2) }))
+      const titles = [...svg.querySelectorAll('.dg-c4-frame-title')].map((g) => ({ id: g.getAttribute('data-id'), box: shrink(g.getBBox(), 1) }))
+      for (const path of svg.querySelectorAll('.dg-c4-rel')) {
+        const from = path.getAttribute('data-from')
+        const to = path.getAttribute('data-to')
+        const length = path.getTotalLength()
+        const hits = new Set()
+        for (let s = 0; s <= length; s += 3) {
+          const p = path.getPointAtLength(s)
+          for (const g of groups) if (g.id !== from && g.id !== to && within(p, g.box)) hits.add('element ' + g.id)
+          for (const t of titles) if (within(p, t.box)) hits.add('title ' + t.id)
+        }
+        for (const h of hits) problems.push({ relation: from + '→' + to, crosses: h })
+      }
+      const labels = [...svg.querySelectorAll('.dg-c4-rel-label-group')].map((g) => ({
+        text: g.textContent,
+        box: shrink(g.querySelector('.dg-edge-label-box').getBBox(), 1),
+      }))
+      labels.forEach((a, i) => {
+        for (const b of labels.slice(i + 1)) if (overlap(a.box, b.box)) problems.push({ labels: [a.text, b.text] })
+        for (const g of groups) if (overlap(a.box, g.box)) problems.push({ label: a.text, over: g.id })
+      })
+    }
     results.push({ name: f.name, problems })
   }
   window.__results = results

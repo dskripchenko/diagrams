@@ -5,7 +5,7 @@
  * deployment nodes, and dashed relations labelled with their technology.
  */
 import { documentSvg, type RenderResult } from '../../core/document'
-import { dedupe, linearPath, type Box, type Point } from '../../core/geometry'
+import { dedupe, type Box, type Point } from '../../core/geometry'
 import { markerDefs, markerId } from '../../core/markers'
 import { el, num, PathBuilder, type SvgElement } from '../../core/svg'
 import {
@@ -161,7 +161,7 @@ function throughPath(points: readonly Point[]): string {
     const d1 = Math.hypot(p.x - prev.x, p.y - prev.y)
     const d2 = Math.hypot(next.x - p.x, next.y - p.y)
     // Half of each neighbouring run at most, so two corners never overlap.
-    const r = Math.min(48, d1 / 2, d2 / 2)
+    const r = Math.min(10, d1 / 2, d2 / 2)
     const enter = { x: p.x + ((prev.x - p.x) * r) / d1, y: p.y + ((prev.y - p.y) * r) / d1 }
     const leave = { x: p.x + ((next.x - p.x) * r) / d2, y: p.y + ((next.y - p.y) * r) / d2 }
     path.lineTo(enter.x, enter.y).quadTo(p.x, p.y, leave.x, leave.y)
@@ -303,6 +303,12 @@ export function renderC4(d: C4Diagram, measure: TextMeasurer, id: string, title?
     if (k < 0) k = lineColours.push(colour) - 1
     return `url(#${id}-m-c4-${k}${start ? '-start' : ''})`
   }
+  const nodeLayers = (x: number, y: number) =>
+    [...d.boundaries.values()].filter((b) => {
+      if (b.kind !== 'node') return false
+      const f = placed.boundaries.get(b.id)!
+      return Math.abs(x - f.x) < f.width / 2 && Math.abs(y - f.y) < f.height / 2
+    })
   const relEls: SvgElement[] = []
   const labelEls: SvgElement[] = []
   d.relations.forEach((r: C4Relation, i) => {
@@ -312,7 +318,7 @@ export function renderC4(d: C4Diagram, measure: TextMeasurer, id: string, title?
     relEls.push(
       el('path', {
         class: 'dg-edge dg-c4-rel',
-        d: route.straight ? linearPath(route.points) : throughPath(route.points),
+        d: throughPath(route.points),
         style: colour ? `stroke:${colour}` : undefined,
         'marker-start': r.arrows !== 'end' ? markerFor(colour, true) : undefined,
         'marker-end': r.arrows !== 'start' ? markerFor(colour, false) : undefined,
@@ -328,6 +334,11 @@ export function renderC4(d: C4Diagram, measure: TextMeasurer, id: string, title?
     const textStyle = r.style?.text ? `fill:${r.style.text}` : undefined
     const children: SvgElement[] = [
       el('rect', { class: 'dg-edge-label-box', x: left, y: top, width: text.width, height: text.height, rx: 3 }),
+      // Inside deployment nodes the box takes their tint too, one layer per
+      // node, so it matches what is around it in any theme.
+      ...nodeLayers(cx, cy).map(() =>
+        el('rect', { class: 'dg-c4-label-tint', x: left, y: top, width: text.width, height: text.height, rx: 3 }),
+      ),
     ]
     const parts = [
       [text.label, 'dg-edge-label dg-c4-rel-label'],
@@ -419,6 +430,8 @@ export function renderC4(d: C4Diagram, measure: TextMeasurer, id: string, title?
     `${r} .dg-c4-boundary-type{font-size:12px;opacity:0.8}`,
     `${r} .dg-c4-rel{stroke-dasharray:6 4}`,
     `${r} .dg-c4-rel-label-group text{fill:${v('--dg-text')}}`,
+    `${r} .dg-c4-rel-label-group .dg-edge-label-box{opacity:1}`,
+    `${r} .dg-c4-label-tint{fill:${v('--dg-c4-node-fill')}}`,
     `${r} .dg-c4-rel-label{font-size:13px}`,
     `${r} .dg-c4-rel-label-group .dg-c4-rel-techn,${r} .dg-c4-rel-label-group .dg-c4-rel-descr{font-size:11px;fill:${v('--dg-text-muted')}}`,
     `${r} .dg-c4-rel-descr{font-style:italic}`,
