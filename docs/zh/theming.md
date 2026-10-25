@@ -69,8 +69,8 @@
 | `--dg-section-fill-0` / `-1` | 半透明 | 交替的分组色带 |
 | `--dg-today` | `#ef4444` | 今天线 |
 | `--dg-state-start` | `#1f2937` | 起始和结束状态、分叉条 |
-| `--dg-pie-1` … `--dg-pie-12` | 12 色调色板 | 饼图扇区 |
-| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | 扇区边框、百分比 |
+| `--dg-pie-1` … `--dg-pie-12` | 12 色调色板 | 饼图扇区、时间线的分组与时期、XY 图的数据系列、思维导图的分支 |
+| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | 扇区边框、百分比；时间线实色标题上的文字 |
 
 该列表也以 `THEME_VARIABLES`（变量 → 默认值）的形式导出，供生成主题的工具使用。
 

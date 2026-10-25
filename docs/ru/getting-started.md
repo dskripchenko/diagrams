@@ -34,7 +34,8 @@ container.innerHTML = result.svg
 ```
 
 Тип определяется по первой строке: `flowchart` или `graph`,
-`sequenceDiagram`, `stateDiagram-v2` (или `stateDiagram`), `pie`, `gantt`.
+`sequenceDiagram`, `stateDiagram-v2` (или `stateDiagram`), `pie`, `gantt`,
+`timeline`, `xychart-beta` (или `xychart`), `mindmap`.
 
 ## Параметры
 

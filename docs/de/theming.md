@@ -71,8 +71,8 @@ Aussehen ändern.
 | `--dg-section-fill-0` / `-1` | durchscheinend | abwechselnde Abschnittsbänder |
 | `--dg-today` | `#ef4444` | Heute-Linie |
 | `--dg-state-start` | `#1f2937` | Start- und Endzustände, Gabelungsbalken |
-| `--dg-pie-1` … `--dg-pie-12` | eine Palette aus 12 Farben | Kreissegmente |
-| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | Segmentränder, Prozentwerte |
+| `--dg-pie-1` … `--dg-pie-12` | eine Palette aus 12 Farben | Kreissegmente, Abschnitte und Zeiträume der Zeitleiste, Reihen des XY-Diagramms, Äste der Mindmap |
+| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | Segmentränder, Prozentwerte; Text auf gefüllten Zeitleisten-Köpfen |
 
 Die Liste wird außerdem als `THEME_VARIABLES` (Variable → Standardwert)
 exportiert, für Werkzeuge, die ein Theme erzeugen.

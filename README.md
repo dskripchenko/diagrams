@@ -21,12 +21,13 @@ element.innerHTML = svg
 ```
 
 **Supported:** `flowchart` (with subgraphs and per-subgraph direction),
-`sequenceDiagram`, `stateDiagram-v2`, `pie`, `gantt`.
+`sequenceDiagram`, `stateDiagram-v2`, `pie`, `gantt`, `timeline`,
+`xychart-beta`, `mindmap`.
 
 ## Why another renderer
 
 - **Zero dependencies.** Mermaid pulls in d3, dagre, DOMPurify and more —
-  megabytes. This package is one module under 60 KB gzipped before your
+  megabytes. This package is one module under 75 KB gzipped before your
   bundler minifies it, layout engine included.
 - **Safe by construction.** Every label and attribute is escaped by the one
   SVG builder that produces the output; HTML in labels is shown as text.
@@ -54,6 +55,9 @@ than a silently wrong picture.
 | State diagram | [en](docs/en/state.md) | [ru](docs/ru/state.md) | [de](docs/de/state.md) | [zh](docs/zh/state.md) |
 | Pie chart | [en](docs/en/pie.md) | [ru](docs/ru/pie.md) | [de](docs/de/pie.md) | [zh](docs/zh/pie.md) |
 | Gantt chart | [en](docs/en/gantt.md) | [ru](docs/ru/gantt.md) | [de](docs/de/gantt.md) | [zh](docs/zh/gantt.md) |
+| Timeline | [en](docs/en/timeline.md) | [ru](docs/ru/timeline.md) | [de](docs/de/timeline.md) | [zh](docs/zh/timeline.md) |
+| XY chart | [en](docs/en/xychart.md) | [ru](docs/ru/xychart.md) | [de](docs/de/xychart.md) | [zh](docs/zh/xychart.md) |
+| Mind map | [en](docs/en/mindmap.md) | [ru](docs/ru/mindmap.md) | [de](docs/de/mindmap.md) | [zh](docs/zh/mindmap.md) |
 | Theming | [en](docs/en/theming.md) | [ru](docs/ru/theming.md) | [de](docs/de/theming.md) | [zh](docs/zh/theming.md) |
 
 ## Install

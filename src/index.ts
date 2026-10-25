@@ -14,6 +14,9 @@ import { parseGantt, renderGantt } from './diagrams/gantt'
 import { parseFlowchart, renderFlowchart } from './diagrams/flowchart'
 import { parseSequence, renderSequence } from './diagrams/sequence'
 import { parseState, renderState } from './diagrams/state'
+import { parseTimeline, renderTimeline } from './diagrams/timeline'
+import { parseXyChart, renderXyChart } from './diagrams/xychart'
+import { parseMindmap, renderMindmap } from './diagrams/mindmap'
 
 export { DiagramError } from './core/errors'
 export type { RenderOptions, RenderResult } from './core/document'
@@ -21,7 +24,15 @@ export type { TextMeasurer, FontSpec, TextSize } from './core/text'
 export { approximateMeasurer, defaultMeasurer } from './core/text'
 export { VARIABLES as THEME_VARIABLES } from './core/theme'
 
-export type DiagramType = 'pie' | 'gantt' | 'flowchart' | 'sequence' | 'state'
+export type DiagramType =
+  | 'pie'
+  | 'gantt'
+  | 'flowchart'
+  | 'sequence'
+  | 'state'
+  | 'timeline'
+  | 'xychart'
+  | 'mindmap'
 
 interface DiagramModule {
   parse(source: string): unknown
@@ -41,6 +52,9 @@ const MODULES: Record<DiagramType, DiagramModule> = {
   flowchart: { parse: parseFlowchart, render: renderFlowchart as DiagramModule['render'] },
   sequence: { parse: parseSequence, render: renderSequence as DiagramModule['render'] },
   state: { parse: parseState, render: renderState as DiagramModule['render'] },
+  timeline: { parse: parseTimeline, render: renderTimeline as DiagramModule['render'] },
+  xychart: { parse: parseXyChart, render: renderXyChart as DiagramModule['render'] },
+  mindmap: { parse: parseMindmap, render: renderMindmap as DiagramModule['render'] },
 }
 
 const KEYWORDS: Record<string, DiagramType> = {
@@ -52,6 +66,10 @@ const KEYWORDS: Record<string, DiagramType> = {
   sequenceDiagram: 'sequence',
   stateDiagram: 'state',
   'stateDiagram-v2': 'state',
+  timeline: 'timeline',
+  'xychart-beta': 'xychart',
+  xychart: 'xychart',
+  mindmap: 'mindmap',
 }
 
 /** The diagram type a source declares on its first line, or null. */

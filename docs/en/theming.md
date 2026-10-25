@@ -60,7 +60,7 @@ on a container, in a dark-mode media query — restyle it.
 | `--dg-number-text` | `#ffffff` | autonumber digits |
 | `--dg-block-stroke` / `--dg-block-label-fill` | `#94a3b8` / `#e2e8f0` | `loop`, `alt` … frames and their tabs |
 | `--dg-rect-fill` | translucent grey | `rect` without a colour |
-| `--dg-grid` | `#e5e7eb` | gantt grid |
+| `--dg-grid` | `#e5e7eb` | gantt and XY chart grid |
 | `--dg-task-fill` / `-stroke` | `#818cf8` / `#4f46e5` | gantt tasks |
 | `--dg-task-done-fill` / `-stroke` | `#cbd5e1` / `#64748b` | `done` |
 | `--dg-task-active-fill` | `#c7d2fe` | `active` |
@@ -70,8 +70,8 @@ on a container, in a dark-mode media query — restyle it.
 | `--dg-section-fill-0` / `-1` | translucent | alternating section bands |
 | `--dg-today` | `#ef4444` | today line |
 | `--dg-state-start` | `#1f2937` | start and end states, fork bars |
-| `--dg-pie-1` … `--dg-pie-12` | a 12-colour palette | pie slices |
-| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | slice borders, percentages |
+| `--dg-pie-1` … `--dg-pie-12` | a 12-colour palette | pie slices, timeline sections and periods, XY chart series, mind map branches |
+| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | slice borders, percentages; text on solid timeline headers |
 
 The list is also exported as `THEME_VARIABLES` (variable → default), for
 tools that generate a theme.

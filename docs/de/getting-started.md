@@ -34,7 +34,8 @@ container.innerHTML = result.svg
 ```
 
 Der Typ wird aus der ersten Zeile gelesen: `flowchart` oder `graph`,
-`sequenceDiagram`, `stateDiagram-v2` (oder `stateDiagram`), `pie`, `gantt`.
+`sequenceDiagram`, `stateDiagram-v2` (oder `stateDiagram`), `pie`, `gantt`,
+`timeline`, `xychart-beta` (oder `xychart`), `mindmap`.
 
 ## Optionen
 

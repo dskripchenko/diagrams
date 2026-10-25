@@ -35,6 +35,9 @@ const TEMPLATES: Record<string, (p: string) => string> = {
   sequence: (p) => `sequenceDiagram\n  participant A as ${p}\n  A->>B: ${p}\n  Note over A: ${p}`,
   state: (p) => `stateDiagram-v2\n  A : ${p}\n  A --> B : ${p}\n  note right of A : ${p}`,
   pie: (p) => `pie title ${p}\n  "${p.replace(/"/g, '#quot;')}" : 1\n  "b" : 2`,
+  timeline: (p) => `timeline\n  title ${p}\n  section ${p}\n  ${p.replace(/:/g, '')} : ${p.replace(/:/g, '')}`,
+  xychart: (p) => `xychart-beta\n  title ${p}\n  x-axis ${p.replace(/[[\]"]/g, '')} ["${p.replace(/"/g, '')}", b]\n  bar ${p.replace(/[[\]"]/g, '')} [1, 2]`,
+  mindmap: (p) => `mindmap\n  root["${p.replace(/"/g, '#quot;')}"]\n    ${p.replace(/[[\](){}]/g, '')}\n    a["\`**${p.replace(/"/g, '')}**\`"]`,
   gantt: (p) => `gantt\n  title ${p}\n  dateFormat YYYY-MM-DD\n  section ${p}\n  ${p.replace(/:/g, '')} : a1, 2026-01-01, 3d`,
 }
 
