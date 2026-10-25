@@ -34,8 +34,9 @@ container.innerHTML = result.svg
 ```
 
 Der Typ wird aus der ersten Zeile gelesen: `flowchart` oder `graph`,
-`sequenceDiagram`, `stateDiagram-v2` (oder `stateDiagram`), `pie`, `gantt`,
-`timeline`, `xychart-beta` (oder `xychart`), `mindmap`.
+`sequenceDiagram`, `stateDiagram-v2` (oder `stateDiagram`), `erDiagram`,
+`classDiagram`, `C4Context`, `C4Container`, `C4Component`, `C4Dynamic`, `C4Deployment`,
+`pie`, `gantt`, `timeline`, `xychart-beta` (oder `xychart`), `mindmap`.
 
 ## Optionen
 
@@ -151,7 +152,7 @@ Paket maskiert.
 
 ## Grenzen
 
-Ein Flussdiagramm oder Zustandsdiagramm darf bis zu 500 Knoten und 2000
+Ein Flussdiagramm, Zustands-, ER- oder Klassendiagramm darf bis zu 500 Knoten und 2000
 Kanten haben; darüber hinaus ist die Laufzeit des Layouts nicht mehr
 vorhersehbar, und das Rendern löst `DiagramError` mit dem Vorschlag aus, das
 Diagramm aufzuteilen. 500 Knoten werden deutlich unter einer Sekunde

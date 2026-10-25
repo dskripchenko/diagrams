@@ -161,6 +161,60 @@ describe('layered layout', () => {
     })
   }
 
+  describe('with transpose', () => {
+    /** Proper crossings between the drawn polylines of different edges. */
+    const crossings = (input: LayoutInput): number => {
+      const r = layout(input)
+      const lines = input.edges
+        .filter((e) => e.from !== e.to)
+        .map((e) => [r.nodes.get(e.from)!, ...r.edges.get(e.id)!.points, r.nodes.get(e.to)!])
+      const cross = (a: Box | { x: number; y: number }, b: typeof a, c: typeof a, d: typeof a) => {
+        const o = (p: typeof a, q: typeof a, s: typeof a) => Math.sign((q.x - p.x) * (s.y - p.y) - (q.y - p.y) * (s.x - p.x))
+        return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0
+      }
+      let n = 0
+      for (let i = 0; i < lines.length; i++)
+        for (let j = i + 1; j < lines.length; j++)
+          for (let s = 1; s < lines[i]!.length; s++)
+            for (let t = 1; t < lines[j]!.length; t++)
+              if (cross(lines[i]![s - 1]!, lines[i]![s]!, lines[j]![t - 1]!, lines[j]![t]!)) n++
+      return n
+    }
+
+    for (const seed of [1, 2, 3, 4, 5]) {
+      it(`random graph ${seed} keeps every invariant`, () => {
+        check({ ...randomGraph(seed * 7, 14 + seed * 3, 18 + seed * 4, seed % 2 === 0), transpose: true })
+      })
+    }
+
+    it('crosses less overall', () => {
+      let before = 0
+      let after = 0
+      for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+        const input = randomGraph(seed * 13, 12 + seed * 2, 16 + seed * 3, false)
+        before += crossings(input)
+        after += crossings({ ...input, transpose: true })
+      }
+      expect(after).toBeLessThan(before)
+    })
+
+    it('untangles a tie the plain sweeps leave', () => {
+      // ORDER feeds both bottom nodes, PRODUCT only the first: SHIPPER belongs on the left.
+      const box = { width: 60, height: 30 }
+      const input: LayoutInput = {
+        nodes: ['CUSTOMER', 'ORDER', 'LOYALTY', 'PRODUCT', 'LINE', 'SHIPPER'].map((id) => ({ id, ...box })),
+        edges: [
+          { id: 'a', from: 'CUSTOMER', to: 'ORDER' },
+          { id: 'b', from: 'CUSTOMER', to: 'LOYALTY' },
+          { id: 'c', from: 'ORDER', to: 'LINE' },
+          { id: 'd', from: 'PRODUCT', to: 'LINE' },
+          { id: 'e', from: 'ORDER', to: 'SHIPPER' },
+        ],
+      }
+      expect(crossings({ ...input, transpose: true })).toBe(0)
+    })
+  })
+
   it('lays out 500 nodes quickly', () => {
     const input = randomGraph(99, 500, 700, false)
     const start = performance.now()

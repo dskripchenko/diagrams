@@ -1,0 +1,34 @@
+classDiagram
+    direction TB
+    class Shape {
+        <<interface>>
+        +area() double
+        +draw(Canvas canvas)*
+    }
+    class Square~T~ {
+        -List~T~ points
+        +int sides$
+        +Square(double side)
+        +area() double
+        +count()$ int
+    }
+    class Canvas
+    class Registry {
+        <<service>>
+        -Map~String, Shape~ shapes
+        +register(Shape shape) bool
+    }
+    class Color {
+        <<enumeration>>
+        RED
+        GREEN
+        BLUE
+    }
+    Shape <|.. Square : implements
+    Registry "1" *-- "0..*" Shape : owns
+    Square o-- Color : fill
+    Square ..> Canvas : draws on
+    Registry --> Canvas
+    Shape -- Color
+    note for Registry "Keeps every shape\nby name"
+    style Canvas fill:#ecfeff,stroke:#0891b2,color:#164e63

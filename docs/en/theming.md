@@ -23,6 +23,8 @@ on a container, in a dark-mode media query — restyle it.
     --dg-node-fill: #1e1b4b;
     --dg-node-stroke: #818cf8;
     --dg-node-text: #e0e7ff;
+    --dg-row-fill: #0f172a;
+    --dg-row-alt-fill: #161e33;
     --dg-cluster-fill: #111827;
     --dg-cluster-stroke: #334155;
     --dg-cluster-text: #cbd5e1;
@@ -50,9 +52,10 @@ on a container, in a dark-mode media query — restyle it.
 | `--dg-text` | `#1f2937` | general text |
 | `--dg-text-muted` | `#6b7280` | secondary text: guards, axis labels |
 | `--dg-line` | `#64748b` | edges, arrows, message lines |
-| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | flowchart nodes, states |
+| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | flowchart nodes, states; headers of entities and classes |
+| `--dg-row-fill` / `--dg-row-alt-fill` | `#ffffff` / `#f5f7ff` | rows of entities (alternating) and class compartments |
 | `--dg-cluster-fill` / `-stroke` / `-text` | `#f8fafc` / `#cbd5e1` / `#334155` | subgraphs, composite states |
-| `--dg-edge-label-fill` | `#ffffff` | the box behind edge text — set it to the page background |
+| `--dg-edge-label-fill` | `#ffffff` | the box behind edge text, the inside of hollow line ends — set it to the page background |
 | `--dg-note-fill` / `-stroke` / `-text` | `#fef9c3` / `#ca8a04` / `#422006` | notes |
 | `--dg-actor-fill` / `-stroke` | `#eef2ff` / `#6366f1` | sequence participants |
 | `--dg-activation-fill` | `#e0e7ff` | activation bars |

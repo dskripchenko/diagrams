@@ -1,0 +1,9 @@
+erDiagram
+    EMPLOYEE ||--o{ EMPLOYEE : manages
+    EMPLOYEE }o--|| DEPARTMENT : "works in"
+    DEPARTMENT |o--|| EMPLOYEE : "is headed by"
+    EMPLOYEE {
+        int id PK
+        int managerId FK
+        int departmentId FK
+    }

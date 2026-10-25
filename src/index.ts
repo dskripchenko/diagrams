@@ -17,6 +17,8 @@ import { parseState, renderState } from './diagrams/state'
 import { parseTimeline, renderTimeline } from './diagrams/timeline'
 import { parseXyChart, renderXyChart } from './diagrams/xychart'
 import { parseMindmap, renderMindmap } from './diagrams/mindmap'
+import { parseEr, renderEr } from './diagrams/er'
+import { parseClass, renderClass } from './diagrams/class'
 
 export { DiagramError } from './core/errors'
 export type { RenderOptions, RenderResult } from './core/document'
@@ -33,6 +35,8 @@ export type DiagramType =
   | 'timeline'
   | 'xychart'
   | 'mindmap'
+  | 'er'
+  | 'class'
 
 interface DiagramModule {
   parse(source: string): unknown
@@ -55,6 +59,8 @@ const MODULES: Record<DiagramType, DiagramModule> = {
   timeline: { parse: parseTimeline, render: renderTimeline as DiagramModule['render'] },
   xychart: { parse: parseXyChart, render: renderXyChart as DiagramModule['render'] },
   mindmap: { parse: parseMindmap, render: renderMindmap as DiagramModule['render'] },
+  er: { parse: parseEr, render: renderEr as DiagramModule['render'] },
+  class: { parse: parseClass, render: renderClass as DiagramModule['render'] },
 }
 
 const KEYWORDS: Record<string, DiagramType> = {
@@ -70,6 +76,9 @@ const KEYWORDS: Record<string, DiagramType> = {
   'xychart-beta': 'xychart',
   xychart: 'xychart',
   mindmap: 'mindmap',
+  erDiagram: 'er',
+  classDiagram: 'class',
+  'classDiagram-v2': 'class',
 }
 
 /** The diagram type a source declares on its first line, or null. */

@@ -23,6 +23,8 @@ export const VARIABLES: Readonly<Record<string, string>> = {
   '--dg-node-fill': '#eef2ff',
   '--dg-node-stroke': '#6366f1',
   '--dg-node-text': '#1e1b4b',
+  '--dg-row-fill': '#ffffff',
+  '--dg-row-alt-fill': '#f5f7ff',
   '--dg-cluster-fill': '#f8fafc',
   '--dg-cluster-stroke': '#cbd5e1',
   '--dg-cluster-text': '#334155',

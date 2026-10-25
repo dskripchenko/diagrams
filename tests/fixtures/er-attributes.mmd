@@ -1,0 +1,33 @@
+erDiagram
+    %% A small shop: every cardinality, both line kinds, keys and comments
+    CUSTOMER ||--o{ ORDER : places
+    CUSTOMER |o--o| LOYALTY-CARD : "may hold"
+    ORDER ||--|{ LINE-ITEM : contains
+    PRODUCT ||--o{ LINE-ITEM : "ordered as"
+    ORDER }o..|| SHIPPER : "ships with"
+    CUSTOMER {
+        string id PK
+        string email UK "login, unique"
+        string name
+        date registered
+    }
+    ORDER {
+        int number PK
+        string customerId FK
+        decimal(10,2) total
+        string status "new, paid or shipped"
+    }
+    LINE-ITEM {
+        int orderNumber PK, FK
+        string sku PK, FK
+        int quantity
+    }
+    PRODUCT {
+        string sku PK
+        string title
+        decimal(10,2) price
+    }
+    LOYALTY-CARD {
+        string number PK
+        int points
+    }
