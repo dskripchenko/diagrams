@@ -22,6 +22,8 @@
     --dg-node-fill: #1e1b4b;
     --dg-node-stroke: #818cf8;
     --dg-node-text: #e0e7ff;
+    --dg-row-fill: #0f172a;
+    --dg-row-alt-fill: #161e33;
     --dg-cluster-fill: #111827;
     --dg-cluster-stroke: #334155;
     --dg-cluster-text: #cbd5e1;
@@ -37,6 +39,16 @@
     --dg-grid: #1f2937;
     --dg-lifeline: #475569;
     --dg-state-start: #e2e8f0;
+    /* C4：更浅的填充和浅色轮廓，使形状在深色页面上清晰可见 */
+    --dg-c4-person-fill: #1f5c99;
+    --dg-c4-person-stroke: #6aa5e0;
+    --dg-c4-system-fill: #1f6fbf;
+    --dg-c4-system-stroke: #7bb4ee;
+    --dg-c4-container-fill: #3b7fc0;
+    --dg-c4-container-stroke: #93c5fd;
+    --dg-c4-component-stroke: #bfdbfe;
+    --dg-c4-external-fill: #5f6670;
+    --dg-c4-external-stroke: #9ca3af;
   }
 }
 ```
@@ -49,9 +61,10 @@
 | `--dg-text` | `#1f2937` | 一般文本 |
 | `--dg-text-muted` | `#6b7280` | 次要文本：守卫条件、坐标轴标签 |
 | `--dg-line` | `#64748b` | 边、箭头、消息线 |
-| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | 流程图节点、状态 |
+| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | 流程图节点、状态；实体与类的标题栏 |
+| `--dg-row-fill` / `--dg-row-alt-fill` | `#ffffff` / `#f5f7ff` | 实体的行（交替）和类的成员栏 |
 | `--dg-cluster-fill` / `-stroke` / `-text` | `#f8fafc` / `#cbd5e1` / `#334155` | 子图、复合状态 |
-| `--dg-edge-label-fill` | `#ffffff` | 边文本背后的底框——设为页面背景色 |
+| `--dg-edge-label-fill` | `#ffffff` | 边文本背后的底框、空心线端的内部——设为页面背景色 |
 | `--dg-note-fill` / `-stroke` / `-text` | `#fef9c3` / `#ca8a04` / `#422006` | 注解 |
 | `--dg-actor-fill` / `-stroke` | `#eef2ff` / `#6366f1` | 时序图参与者 |
 | `--dg-activation-fill` | `#e0e7ff` | 激活条 |
@@ -69,8 +82,15 @@
 | `--dg-section-fill-0` / `-1` | 半透明 | 交替的分组色带 |
 | `--dg-today` | `#ef4444` | 今天线 |
 | `--dg-state-start` | `#1f2937` | 起始和结束状态、分叉条 |
-| `--dg-pie-1` … `--dg-pie-12` | 12 色调色板 | 饼图扇区 |
-| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | 扇区边框、百分比 |
+| `--dg-pie-1` … `--dg-pie-12` | 12 色调色板 | 饼图扇区、时间线的分组与时期、XY 图的数据系列、思维导图的分支 |
+| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | 扇区边框、百分比；时间线实色标题上的文字 |
+| `--dg-c4-person-fill` / `-stroke` / `-text` | `#08427b` / `#052e56` / `#ffffff` | C4 人员 |
+| `--dg-c4-system-fill` / `-stroke` / `-text` | `#1168bd` / `#0b4884` / `#ffffff` | C4 软件系统 |
+| `--dg-c4-container-fill` / `-stroke` / `-text` | `#438dd5` / `#2e6295` / `#ffffff` | C4 容器 |
+| `--dg-c4-component-fill` / `-stroke` / `-text` | `#85bbf0` / `#5d82a8` / `#0b2540` | C4 组件 |
+| `--dg-c4-external-fill` / `-stroke` / `-text` | `#7b7b7b` / `#5c5c5c` / `#ffffff` | C4 外部元素（`_Ext`） |
+| `--dg-c4-boundary-stroke` / `-text` | `#6b7280` / `#1f2937` | C4 边界（虚线框）；默认取 `--dg-text-muted` / `--dg-text` |
+| `--dg-c4-node-fill` / `-stroke` / `-text` | 半透明灰色 / `#6b7280` / `#1f2937` | C4 部署节点；边框和文字默认取 `--dg-text-muted` / `--dg-text` |
 
 该列表也以 `THEME_VARIABLES`（变量 → 默认值）的形式导出，供生成主题的工具使用。
 

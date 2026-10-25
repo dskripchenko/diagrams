@@ -221,7 +221,7 @@ function layoutCore(input: LayoutInput): LayoutResult {
   addSpines(g, clusters.keys(), parents, top, bottom)
 
   // 5–6. Order and coordinates.
-  const layers = order(g, parents as ClusterParents)
+  const layers = order(g, parents as ClusterParents, 24, input.transpose ?? false)
   position(g, layers, parents as ClusterParents, spacing)
 
   // Frames.

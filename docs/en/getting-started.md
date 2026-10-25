@@ -33,7 +33,9 @@ container.innerHTML = result.svg
 ```
 
 The type is taken from the first line: `flowchart` or `graph`,
-`sequenceDiagram`, `stateDiagram-v2` (or `stateDiagram`), `pie`, `gantt`.
+`sequenceDiagram`, `stateDiagram-v2` (or `stateDiagram`), `erDiagram`,
+`classDiagram`, `C4Context`, `C4Container`, `C4Component`, `C4Dynamic`, `C4Deployment`,
+`pie`, `gantt`, `timeline`, `xychart-beta` (or `xychart`), `mindmap`.
 
 ## Options
 
@@ -144,7 +146,7 @@ by the package.
 
 ## Limits
 
-A flowchart or state diagram may have up to 500 nodes and 2000 edges; beyond
+A flowchart, state, entity relationship or class diagram may have up to 500 nodes and 2000 edges; beyond
 that the layout's running time stops being predictable, and the render
 raises `DiagramError` suggesting to split the diagram. 500 nodes lay out in
 well under a second.

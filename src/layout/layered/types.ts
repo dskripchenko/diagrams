@@ -51,6 +51,12 @@ export interface LayoutInput {
   edgeSep?: number
   /** Padding inside a cluster frame. */
   clusterPadding?: number
+  /**
+   * Refine the order of each rank by swapping neighbours while that removes
+   * crossings. Fewer crossings, a little more time; off by default so the
+   * diagrams that predate it keep their exact output.
+   */
+  transpose?: boolean
 }
 
 export interface EdgeRoute {

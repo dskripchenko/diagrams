@@ -1,0 +1,20 @@
+C4Container
+    title Сервис печати — контейнеры
+    Person(author, "Автор шаблонов", "Готовит шаблоны документов в панели")
+    Person_Ext(client, "Клиентское приложение", "Вызывает API печати")
+    System_Boundary(printable, "Printable") {
+        Container(panel, "Панель", "Laravel, Vue", "Редактор шаблонов и вики")
+        Container(api, "API печати", "Laravel Octane", "Принимает задания, отдаёт документы")
+        ContainerQueue(queue, "Очередь", "Redis", "Задания рендера")
+        Container(worker, "Воркер рендера", "php-pdf, php-docx", "Собирает PDF и DOCX")
+        ContainerDb(db, "База", "PostgreSQL", "Шаблоны, тенанты, журнал")
+    }
+    System_Ext(tsa, "TSA", "Метки времени для подписи")
+    Rel(author, panel, "Редактирует шаблоны", "HTTPS")
+    Rel(client, api, "Заказывает документ", "JSON/HTTPS")
+    Rel_R(api, queue, "Ставит задание")
+    Rel(queue, worker, "Отдаёт задание")
+    Rel(panel, db, "Читает и пишет", "SQL")
+    Rel(worker, db, "Читает шаблон", "SQL")
+    Rel(worker, tsa, "Запрашивает метку", "RFC 3161")
+    BiRel(api, db, "Журнал", "SQL")

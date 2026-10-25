@@ -24,6 +24,8 @@ Aussehen ändern.
     --dg-node-fill: #1e1b4b;
     --dg-node-stroke: #818cf8;
     --dg-node-text: #e0e7ff;
+    --dg-row-fill: #0f172a;
+    --dg-row-alt-fill: #161e33;
     --dg-cluster-fill: #111827;
     --dg-cluster-stroke: #334155;
     --dg-cluster-text: #cbd5e1;
@@ -39,6 +41,16 @@ Aussehen ändern.
     --dg-grid: #1f2937;
     --dg-lifeline: #475569;
     --dg-state-start: #e2e8f0;
+    /* C4: hellere Füllungen und helle Konturen, damit Formen sich abheben */
+    --dg-c4-person-fill: #1f5c99;
+    --dg-c4-person-stroke: #6aa5e0;
+    --dg-c4-system-fill: #1f6fbf;
+    --dg-c4-system-stroke: #7bb4ee;
+    --dg-c4-container-fill: #3b7fc0;
+    --dg-c4-container-stroke: #93c5fd;
+    --dg-c4-component-stroke: #bfdbfe;
+    --dg-c4-external-fill: #5f6670;
+    --dg-c4-external-stroke: #9ca3af;
   }
 }
 ```
@@ -51,9 +63,10 @@ Aussehen ändern.
 | `--dg-text` | `#1f2937` | allgemeinen Text |
 | `--dg-text-muted` | `#6b7280` | sekundären Text: Bedingungen, Achsenbeschriftungen |
 | `--dg-line` | `#64748b` | Kanten, Pfeile, Nachrichtenlinien |
-| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | Flussdiagramm-Knoten, Zustände |
+| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | Flussdiagramm-Knoten, Zustände; Köpfe von Entitäten und Klassen |
+| `--dg-row-fill` / `--dg-row-alt-fill` | `#ffffff` / `#f5f7ff` | Zeilen von Entitäten (abwechselnd) und Fächer von Klassen |
 | `--dg-cluster-fill` / `-stroke` / `-text` | `#f8fafc` / `#cbd5e1` / `#334155` | Subgraphen, zusammengesetzte Zustände |
-| `--dg-edge-label-fill` | `#ffffff` | den Kasten hinter Kantentext — auf den Seitenhintergrund setzen |
+| `--dg-edge-label-fill` | `#ffffff` | den Kasten hinter Kantentext, das Innere hohler Linienenden — auf den Seitenhintergrund setzen |
 | `--dg-note-fill` / `-stroke` / `-text` | `#fef9c3` / `#ca8a04` / `#422006` | Notizen |
 | `--dg-actor-fill` / `-stroke` | `#eef2ff` / `#6366f1` | Teilnehmer im Sequenzdiagramm |
 | `--dg-activation-fill` | `#e0e7ff` | Aktivierungsbalken |
@@ -71,8 +84,15 @@ Aussehen ändern.
 | `--dg-section-fill-0` / `-1` | durchscheinend | abwechselnde Abschnittsbänder |
 | `--dg-today` | `#ef4444` | Heute-Linie |
 | `--dg-state-start` | `#1f2937` | Start- und Endzustände, Gabelungsbalken |
-| `--dg-pie-1` … `--dg-pie-12` | eine Palette aus 12 Farben | Kreissegmente |
-| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | Segmentränder, Prozentwerte |
+| `--dg-pie-1` … `--dg-pie-12` | eine Palette aus 12 Farben | Kreissegmente, Abschnitte und Zeiträume der Zeitleiste, Reihen des XY-Diagramms, Äste der Mindmap |
+| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | Segmentränder, Prozentwerte; Text auf gefüllten Zeitleisten-Köpfen |
+| `--dg-c4-person-fill` / `-stroke` / `-text` | `#08427b` / `#052e56` / `#ffffff` | C4-Personen |
+| `--dg-c4-system-fill` / `-stroke` / `-text` | `#1168bd` / `#0b4884` / `#ffffff` | C4-Softwaresysteme |
+| `--dg-c4-container-fill` / `-stroke` / `-text` | `#438dd5` / `#2e6295` / `#ffffff` | C4-Container |
+| `--dg-c4-component-fill` / `-stroke` / `-text` | `#85bbf0` / `#5d82a8` / `#0b2540` | C4-Komponenten |
+| `--dg-c4-external-fill` / `-stroke` / `-text` | `#7b7b7b` / `#5c5c5c` / `#ffffff` | externe C4-Elemente (`_Ext`) |
+| `--dg-c4-boundary-stroke` / `-text` | `#6b7280` / `#1f2937` | C4-Grenzen (gestrichelte Rahmen); Standard ist `--dg-text-muted` / `--dg-text` |
+| `--dg-c4-node-fill` / `-stroke` / `-text` | durchscheinendes Grau / `#6b7280` / `#1f2937` | C4-Deployment-Knoten; Rand und Text folgen standardmäßig `--dg-text-muted` / `--dg-text` |
 
 Die Liste wird außerdem als `THEME_VARIABLES` (Variable → Standardwert)
 exportiert, für Werkzeuge, die ein Theme erzeugen.

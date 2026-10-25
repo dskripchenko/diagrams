@@ -1,0 +1,8 @@
+classDiagram
+    class Node {
+        +Node parent
+        +List~Node~ children
+    }
+    Node "1" o-- "*" Node : children
+    Node <|-- Leaf
+    Leaf --> Node : parent

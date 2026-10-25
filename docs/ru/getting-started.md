@@ -34,7 +34,9 @@ container.innerHTML = result.svg
 ```
 
 Тип определяется по первой строке: `flowchart` или `graph`,
-`sequenceDiagram`, `stateDiagram-v2` (или `stateDiagram`), `pie`, `gantt`.
+`sequenceDiagram`, `stateDiagram-v2` (или `stateDiagram`), `erDiagram`,
+`classDiagram`, `C4Context`, `C4Container`, `C4Component`, `C4Dynamic`, `C4Deployment`,
+`pie`, `gantt`, `timeline`, `xychart-beta` (или `xychart`), `mindmap`.
 
 ## Параметры
 
@@ -148,7 +150,8 @@ SVG безопасно вставлять как разметку: весь те
 
 ## Ограничения
 
-Блок-схема или диаграмма состояний может содержать до 500 узлов и 2000 рёбер;
+Блок-схема, диаграмма состояний, ER-диаграмма или диаграмма классов может
+содержать до 500 узлов и 2000 рёбер;
 сверх этого время раскладки перестаёт быть предсказуемым, и отрисовка
 вызывает `DiagramError` с предложением разбить диаграмму. 500 узлов
 раскладываются заметно быстрее чем за секунду.

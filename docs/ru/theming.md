@@ -23,6 +23,8 @@
     --dg-node-fill: #1e1b4b;
     --dg-node-stroke: #818cf8;
     --dg-node-text: #e0e7ff;
+    --dg-row-fill: #0f172a;
+    --dg-row-alt-fill: #161e33;
     --dg-cluster-fill: #111827;
     --dg-cluster-stroke: #334155;
     --dg-cluster-text: #cbd5e1;
@@ -38,6 +40,16 @@
     --dg-grid: #1f2937;
     --dg-lifeline: #475569;
     --dg-state-start: #e2e8f0;
+    /* C4: заливки светлее и светлые контуры — фигуры видны на тёмной странице */
+    --dg-c4-person-fill: #1f5c99;
+    --dg-c4-person-stroke: #6aa5e0;
+    --dg-c4-system-fill: #1f6fbf;
+    --dg-c4-system-stroke: #7bb4ee;
+    --dg-c4-container-fill: #3b7fc0;
+    --dg-c4-container-stroke: #93c5fd;
+    --dg-c4-component-stroke: #bfdbfe;
+    --dg-c4-external-fill: #5f6670;
+    --dg-c4-external-stroke: #9ca3af;
   }
 }
 ```
@@ -50,9 +62,10 @@
 | `--dg-text` | `#1f2937` | основной текст |
 | `--dg-text-muted` | `#6b7280` | второстепенный текст: условия, подписи оси |
 | `--dg-line` | `#64748b` | рёбра, стрелки, линии сообщений |
-| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | узлы блок-схем, состояния |
+| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | узлы блок-схем, состояния; заголовки сущностей и классов |
+| `--dg-row-fill` / `--dg-row-alt-fill` | `#ffffff` / `#f5f7ff` | строки сущностей (через одну) и секции классов |
 | `--dg-cluster-fill` / `-stroke` / `-text` | `#f8fafc` / `#cbd5e1` / `#334155` | подграфы, составные состояния |
-| `--dg-edge-label-fill` | `#ffffff` | подложка под текстом рёбер — задайте ей цвет фона страницы |
+| `--dg-edge-label-fill` | `#ffffff` | подложка под текстом рёбер, заливка полых наконечников — задайте ей цвет фона страницы |
 | `--dg-note-fill` / `-stroke` / `-text` | `#fef9c3` / `#ca8a04` / `#422006` | заметки |
 | `--dg-actor-fill` / `-stroke` | `#eef2ff` / `#6366f1` | участники диаграммы последовательности |
 | `--dg-activation-fill` | `#e0e7ff` | полосы активации |
@@ -70,8 +83,15 @@
 | `--dg-section-fill-0` / `-1` | полупрозрачный | чередующиеся полосы разделов |
 | `--dg-today` | `#ef4444` | линия «сегодня» |
 | `--dg-state-start` | `#1f2937` | начальное и конечное состояния, полосы разветвления |
-| `--dg-pie-1` … `--dg-pie-12` | палитра из 12 цветов | секторы круговой диаграммы |
-| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | границы секторов, проценты |
+| `--dg-pie-1` … `--dg-pie-12` | палитра из 12 цветов | секторы круговой диаграммы, разделы и периоды временной шкалы, серии XY-графика, ветви интеллект-карты |
+| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | границы секторов, проценты; текст на залитых заголовках временной шкалы |
+| `--dg-c4-person-fill` / `-stroke` / `-text` | `#08427b` / `#052e56` / `#ffffff` | персоны C4 |
+| `--dg-c4-system-fill` / `-stroke` / `-text` | `#1168bd` / `#0b4884` / `#ffffff` | программные системы C4 |
+| `--dg-c4-container-fill` / `-stroke` / `-text` | `#438dd5` / `#2e6295` / `#ffffff` | контейнеры C4 |
+| `--dg-c4-component-fill` / `-stroke` / `-text` | `#85bbf0` / `#5d82a8` / `#0b2540` | компоненты C4 |
+| `--dg-c4-external-fill` / `-stroke` / `-text` | `#7b7b7b` / `#5c5c5c` / `#ffffff` | внешние элементы C4 (`_Ext`) |
+| `--dg-c4-boundary-stroke` / `-text` | `#6b7280` / `#1f2937` | границы C4 (пунктирные рамки); по умолчанию берут `--dg-text-muted` / `--dg-text` |
+| `--dg-c4-node-fill` / `-stroke` / `-text` | полупрозрачный серый / `#6b7280` / `#1f2937` | узлы развёртывания C4; обводка и текст по умолчанию берут `--dg-text-muted` / `--dg-text` |
 
 Список также экспортируется как `THEME_VARIABLES` (переменная → значение по
 умолчанию) для инструментов, генерирующих тему.

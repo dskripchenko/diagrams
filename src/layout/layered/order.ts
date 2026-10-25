@@ -65,13 +65,15 @@ interface Group {
 
 /**
  * Sorts one layer by `key`, keeping clusters contiguous and sibling clusters
- * in their canonical order.
+ * in their canonical order. Ties keep their current order, or are reversed
+ * with `biasRight`.
  */
 function sortLayer(
   layer: WNode[],
   key: Map<string, number>,
   parents: ClusterParents,
   canonical: Map<string, number>,
+  biasRight = false,
 ): WNode[] {
   const root: Group = { cluster: null, nodes: [], children: new Map(), items: [] }
   for (const n of layer) {
@@ -114,7 +116,7 @@ function sortLayer(
       index,
       k: typeof item === 'string' ? keyOf(group.children.get(item)!) : key.get(item.id)!,
     }))
-    indexed.sort((a, b) => a.k - b.k || a.index - b.index)
+    indexed.sort((a, b) => a.k - b.k || (biasRight ? b.index - a.index : a.index - b.index))
     // Sibling clusters take the slots clusters landed in, in canonical order.
     const slots = indexed.flatMap((entry, i) => (typeof entry.item === 'string' ? [i] : []))
     const clusters = slots
@@ -227,10 +229,54 @@ function canonicalClusterOrder(layers: WNode[][], parents: ClusterParents): Map<
 }
 
 /**
- * Orders every layer in place and sets `node.order`.
- * Returns the layers, each in its final order.
+ * Transpose: swaps neighbours in a layer while that removes crossings with
+ * the layers above and below. The barycenter sweeps settle in local minima
+ * a single swap gets out of — typically a node with one edge that ties with
+ * a node pulled two ways. Only nodes in the same cluster are swapped, so
+ * clusters stay contiguous.
  */
-export function order(g: Graph, parents: ClusterParents, iterations = 24): WNode[][] {
+function transpose(g: Graph, layers: WNode[][]): void {
+  // Crossings between the edges of u and those of v, with u left of v: only
+  // these change when the two swap. Frame crossings cannot change — both
+  // are in the same cluster, and no other cluster's block can sit between them.
+  const pairs = (us: { order: number; w: number }[], vs: { order: number; w: number }[]): number => {
+    let c = 0
+    for (const a of us) for (const b of vs) if (a.order > b.order) c += a.w * b.w
+    return c
+  }
+  const ends = (n: WNode) => ({
+    up: g.in(n.id).map((e) => ({ order: g.node(e.v).order, w: e.weight || 1 })),
+    down: g.out(n.id).map((e) => ({ order: g.node(e.w).order, w: e.weight || 1 })),
+  })
+  const cost = (u: ReturnType<typeof ends>, v: ReturnType<typeof ends>) => pairs(u.up, v.up) + pairs(u.down, v.down)
+  for (let round = 0; round < 8; round++) {
+    let improved = false
+    for (const layer of layers) {
+      if (layer.length < 2) continue
+      for (let j = 0; j + 1 < layer.length; j++) {
+        const a = layer[j]!
+        const b = layer[j + 1]!
+        if (a.cluster !== b.cluster) continue
+        const ea = ends(a)
+        const eb = ends(b)
+        if (cost(eb, ea) < cost(ea, eb)) {
+          layer[j] = b
+          layer[j + 1] = a
+          improved = true
+        }
+      }
+      layer.forEach((n, k) => (n.order = k))
+    }
+    if (!improved) break
+  }
+}
+
+/**
+ * Orders every layer in place and sets `node.order`.
+ * Returns the layers, each in its final order. With `refine`, every sweep
+ * is followed by a transpose pass.
+ */
+export function order(g: Graph, parents: ClusterParents, iterations = 24, refine = false): WNode[][] {
   const layers = buildLayers(g)
   initialOrder(g, layers)
 
@@ -242,6 +288,7 @@ export function order(g: Graph, parents: ClusterParents, iterations = 24): WNode
   }
   const assign = (ls: WNode[][]) => ls.forEach((layer) => layer.forEach((n, i) => (n.order = i)))
   assign(layers)
+  if (refine) transpose(g, layers)
 
   let best = layers.map((l) => l.slice())
   let bestCrossings = totalCrossings(g, layers, parents)
@@ -249,6 +296,9 @@ export function order(g: Graph, parents: ClusterParents, iterations = 24): WNode
 
   for (let it = 0; it < iterations && bestCrossings > 0 && sinceImprovement < 4; it++) {
     const down = it % 2 === 0
+    // Refined: every other pair of sweeps breaks ties the other way, which
+    // gets out of the minima where two nodes pull equally (as dagre does).
+    const biasRight = refine && it % 4 >= 2
     const range = down
       ? Array.from({ length: layers.length - 1 }, (_, i) => i + 1)
       : Array.from({ length: layers.length - 1 }, (_, i) => layers.length - 2 - i)
@@ -277,9 +327,10 @@ export function order(g: Graph, parents: ClusterParents, iterations = 24): WNode
           key.set(n.id, s / ws)
         }
       }
-      layers[i] = sortLayer(layer, key, parents, canonical)
+      layers[i] = sortLayer(layer, key, parents, canonical, biasRight)
       layers[i]!.forEach((n, j) => (n.order = j))
     }
+    if (refine) transpose(g, layers)
     canonical = canonicalClusterOrder(layers, parents)
     const crossings = totalCrossings(g, layers, parents)
     if (crossings < bestCrossings) {

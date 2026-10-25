@@ -23,6 +23,8 @@ on a container, in a dark-mode media query — restyle it.
     --dg-node-fill: #1e1b4b;
     --dg-node-stroke: #818cf8;
     --dg-node-text: #e0e7ff;
+    --dg-row-fill: #0f172a;
+    --dg-row-alt-fill: #161e33;
     --dg-cluster-fill: #111827;
     --dg-cluster-stroke: #334155;
     --dg-cluster-text: #cbd5e1;
@@ -38,6 +40,16 @@ on a container, in a dark-mode media query — restyle it.
     --dg-grid: #1f2937;
     --dg-lifeline: #475569;
     --dg-state-start: #e2e8f0;
+    /* C4: lighter fills and light outlines, so shapes stand off the page */
+    --dg-c4-person-fill: #1f5c99;
+    --dg-c4-person-stroke: #6aa5e0;
+    --dg-c4-system-fill: #1f6fbf;
+    --dg-c4-system-stroke: #7bb4ee;
+    --dg-c4-container-fill: #3b7fc0;
+    --dg-c4-container-stroke: #93c5fd;
+    --dg-c4-component-stroke: #bfdbfe;
+    --dg-c4-external-fill: #5f6670;
+    --dg-c4-external-stroke: #9ca3af;
   }
 }
 ```
@@ -50,9 +62,10 @@ on a container, in a dark-mode media query — restyle it.
 | `--dg-text` | `#1f2937` | general text |
 | `--dg-text-muted` | `#6b7280` | secondary text: guards, axis labels |
 | `--dg-line` | `#64748b` | edges, arrows, message lines |
-| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | flowchart nodes, states |
+| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | flowchart nodes, states; headers of entities and classes |
+| `--dg-row-fill` / `--dg-row-alt-fill` | `#ffffff` / `#f5f7ff` | rows of entities (alternating) and class compartments |
 | `--dg-cluster-fill` / `-stroke` / `-text` | `#f8fafc` / `#cbd5e1` / `#334155` | subgraphs, composite states |
-| `--dg-edge-label-fill` | `#ffffff` | the box behind edge text — set it to the page background |
+| `--dg-edge-label-fill` | `#ffffff` | the box behind edge text, the inside of hollow line ends — set it to the page background |
 | `--dg-note-fill` / `-stroke` / `-text` | `#fef9c3` / `#ca8a04` / `#422006` | notes |
 | `--dg-actor-fill` / `-stroke` | `#eef2ff` / `#6366f1` | sequence participants |
 | `--dg-activation-fill` | `#e0e7ff` | activation bars |
@@ -60,7 +73,7 @@ on a container, in a dark-mode media query — restyle it.
 | `--dg-number-text` | `#ffffff` | autonumber digits |
 | `--dg-block-stroke` / `--dg-block-label-fill` | `#94a3b8` / `#e2e8f0` | `loop`, `alt` … frames and their tabs |
 | `--dg-rect-fill` | translucent grey | `rect` without a colour |
-| `--dg-grid` | `#e5e7eb` | gantt grid |
+| `--dg-grid` | `#e5e7eb` | gantt and XY chart grid |
 | `--dg-task-fill` / `-stroke` | `#818cf8` / `#4f46e5` | gantt tasks |
 | `--dg-task-done-fill` / `-stroke` | `#cbd5e1` / `#64748b` | `done` |
 | `--dg-task-active-fill` | `#c7d2fe` | `active` |
@@ -70,8 +83,15 @@ on a container, in a dark-mode media query — restyle it.
 | `--dg-section-fill-0` / `-1` | translucent | alternating section bands |
 | `--dg-today` | `#ef4444` | today line |
 | `--dg-state-start` | `#1f2937` | start and end states, fork bars |
-| `--dg-pie-1` … `--dg-pie-12` | a 12-colour palette | pie slices |
-| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | slice borders, percentages |
+| `--dg-pie-1` … `--dg-pie-12` | a 12-colour palette | pie slices, timeline sections and periods, XY chart series, mind map branches |
+| `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | slice borders, percentages; text on solid timeline headers |
+| `--dg-c4-person-fill` / `-stroke` / `-text` | `#08427b` / `#052e56` / `#ffffff` | C4 persons |
+| `--dg-c4-system-fill` / `-stroke` / `-text` | `#1168bd` / `#0b4884` / `#ffffff` | C4 software systems |
+| `--dg-c4-container-fill` / `-stroke` / `-text` | `#438dd5` / `#2e6295` / `#ffffff` | C4 containers |
+| `--dg-c4-component-fill` / `-stroke` / `-text` | `#85bbf0` / `#5d82a8` / `#0b2540` | C4 components |
+| `--dg-c4-external-fill` / `-stroke` / `-text` | `#7b7b7b` / `#5c5c5c` / `#ffffff` | external C4 elements (`_Ext`) |
+| `--dg-c4-boundary-stroke` / `-text` | `#6b7280` / `#1f2937` | C4 boundaries (dashed frames); default to `--dg-text-muted` / `--dg-text` |
+| `--dg-c4-node-fill` / `-stroke` / `-text` | translucent grey / `#6b7280` / `#1f2937` | C4 deployment nodes; stroke and text default to `--dg-text-muted` / `--dg-text` |
 
 The list is also exported as `THEME_VARIABLES` (variable → default), for
 tools that generate a theme.

@@ -1,0 +1,15 @@
+C4Context
+    title Internet Banking System — system context
+    Person(customer, "Personal Banking Customer", "A customer of the bank, with personal bank accounts.")
+    Enterprise_Boundary(bank, "Big Bank plc") {
+        Person(staff, "Customer Service Staff", "Customer service staff within the bank.")
+        System(banking, "Internet Banking System", "Allows customers to view information about their bank accounts, and make payments.")
+        System_Ext(mail, "E-mail System", "The internal Microsoft Exchange e-mail system.")
+        SystemDb_Ext(mainframe, "Mainframe Banking System", "Stores all of the core banking information about customers, accounts, transactions, etc.")
+    }
+    Rel(customer, banking, "Views account balances, and makes payments using")
+    Rel_R(customer, staff, "Asks questions to", "Telephone")
+    Rel(banking, mail, "Sends e-mail using", "SMTP")
+    Rel(banking, mainframe, "Gets account information from, and makes payments using", "XML/HTTPS")
+    Rel_U(mail, customer, "Sends e-mails to")
+    Rel(staff, mainframe, "Uses")
