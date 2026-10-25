@@ -71,6 +71,13 @@
 | `--dg-state-start` | `#1f2937` | 起始和结束状态、分叉条 |
 | `--dg-pie-1` … `--dg-pie-12` | 12 色调色板 | 饼图扇区 |
 | `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | 扇区边框、百分比 |
+| `--dg-c4-person-fill` / `-stroke` / `-text` | `#08427b` / `#052e56` / `#ffffff` | C4 人员 |
+| `--dg-c4-system-fill` / `-stroke` / `-text` | `#1168bd` / `#0b4884` / `#ffffff` | C4 软件系统 |
+| `--dg-c4-container-fill` / `-stroke` / `-text` | `#438dd5` / `#2e6295` / `#ffffff` | C4 容器 |
+| `--dg-c4-component-fill` / `-stroke` / `-text` | `#85bbf0` / `#5d82a8` / `#0b2540` | C4 组件 |
+| `--dg-c4-external-fill` / `-stroke` / `-text` | `#7b7b7b` / `#5c5c5c` / `#ffffff` | C4 外部元素（`_Ext`） |
+| `--dg-c4-boundary-stroke` / `-text` | `#6b7280` / `#1f2937` | C4 边界（虚线框）；默认取 `--dg-text-muted` / `--dg-text` |
+| `--dg-c4-node-fill` / `-stroke` / `-text` | 半透明灰色 / `#6b7280` / `#1f2937` | C4 部署节点；边框和文字默认取 `--dg-text-muted` / `--dg-text` |
 
 该列表也以 `THEME_VARIABLES`（变量 → 默认值）的形式导出，供生成主题的工具使用。
 

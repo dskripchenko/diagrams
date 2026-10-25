@@ -21,12 +21,13 @@ element.innerHTML = svg
 ```
 
 **Supported:** `flowchart` (with subgraphs and per-subgraph direction),
-`sequenceDiagram`, `stateDiagram-v2`, `pie`, `gantt`.
+`sequenceDiagram`, `stateDiagram-v2`, `pie`, `gantt`, C4 (`C4Context`, `C4Container`,
+`C4Component`, `C4Dynamic`, `C4Deployment`).
 
 ## Why another renderer
 
 - **Zero dependencies.** Mermaid pulls in d3, dagre, DOMPurify and more —
-  megabytes. This package is one module under 60 KB gzipped before your
+  megabytes. This package is one module under 80 KB gzipped before your
   bundler minifies it, layout engine included.
 - **Safe by construction.** Every label and attribute is escaped by the one
   SVG builder that produces the output; HTML in labels is shown as text.
@@ -54,6 +55,7 @@ than a silently wrong picture.
 | State diagram | [en](docs/en/state.md) | [ru](docs/ru/state.md) | [de](docs/de/state.md) | [zh](docs/zh/state.md) |
 | Pie chart | [en](docs/en/pie.md) | [ru](docs/ru/pie.md) | [de](docs/de/pie.md) | [zh](docs/zh/pie.md) |
 | Gantt chart | [en](docs/en/gantt.md) | [ru](docs/ru/gantt.md) | [de](docs/de/gantt.md) | [zh](docs/zh/gantt.md) |
+| C4 diagrams | [en](docs/en/c4.md) | [ru](docs/ru/c4.md) | [de](docs/de/c4.md) | [zh](docs/zh/c4.md) |
 | Theming | [en](docs/en/theming.md) | [ru](docs/ru/theming.md) | [de](docs/de/theming.md) | [zh](docs/zh/theming.md) |
 
 ## Install

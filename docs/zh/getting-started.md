@@ -32,7 +32,8 @@ container.innerHTML = result.svg
 ```
 
 类型由第一行决定：`flowchart` 或 `graph`、`sequenceDiagram`、
-`stateDiagram-v2`（或 `stateDiagram`）、`pie`、`gantt`。
+`stateDiagram-v2`（或 `stateDiagram`）、`pie`、`gantt`、`C4Context`、`C4Container`、
+`C4Component`、`C4Dynamic`、`C4Deployment`。
 
 ## 选项
 

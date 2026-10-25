@@ -36,6 +36,10 @@ const TEMPLATES: Record<string, (p: string) => string> = {
   state: (p) => `stateDiagram-v2\n  A : ${p}\n  A --> B : ${p}\n  note right of A : ${p}`,
   pie: (p) => `pie title ${p}\n  "${p.replace(/"/g, '#quot;')}" : 1\n  "b" : 2`,
   gantt: (p) => `gantt\n  title ${p}\n  dateFormat YYYY-MM-DD\n  section ${p}\n  ${p.replace(/:/g, '')} : a1, 2026-01-01, 3d`,
+  c4: (p) => {
+    const q = p.replace(/"/g, '#quot;')
+    return `C4Context\n  title ${p}\n  Person(a, "${q}", "${q}")\n  Boundary(b, "${q}", "${q}") {\n    System(s, "${q}")\n  }\n  Rel(a, s, "${q}", "${q}", "${q}")`
+  },
 }
 
 describe('labels never become markup', () => {

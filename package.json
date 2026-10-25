@@ -1,7 +1,7 @@
 {
   "name": "@dskripchenko/diagrams",
   "version": "1.0.2",
-  "description": "Mermaid-syntax diagrams rendered to SVG with zero runtime dependencies — flowchart, sequence, state, pie, gantt",
+  "description": "Mermaid-syntax diagrams rendered to SVG with zero runtime dependencies — flowchart, sequence, state, pie, gantt, C4",
   "keywords": [
     "diagram",
     "mermaid",
@@ -9,6 +9,8 @@
     "sequence-diagram",
     "state-diagram",
     "gantt",
+    "c4",
+    "c4-model",
     "pie-chart",
     "svg",
     "graph-layout",

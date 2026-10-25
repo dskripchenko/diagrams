@@ -33,7 +33,8 @@ container.innerHTML = result.svg
 ```
 
 The type is taken from the first line: `flowchart` or `graph`,
-`sequenceDiagram`, `stateDiagram-v2` (or `stateDiagram`), `pie`, `gantt`.
+`sequenceDiagram`, `stateDiagram-v2` (or `stateDiagram`), `pie`, `gantt`,
+`C4Context`, `C4Container`, `C4Component`, `C4Dynamic`, `C4Deployment`.
 
 ## Options
 

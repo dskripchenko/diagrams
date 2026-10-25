@@ -1,0 +1,16 @@
+C4Dynamic
+    title Checkout, left to right
+    LAYOUT_LEFT_RIGHT()
+    Person(shopper, "Shopper")
+    System_Boundary(shop, "Shop") {
+        Container(web, "Storefront", "Next.js")
+        Container(orders, "Orders", "Go", "Places and tracks orders")
+        ContainerDb(db, "Orders DB", "PostgreSQL")
+        ContainerQueue(events, "Events", "Kafka")
+    }
+    System_Ext(psp, "Payment provider", "Cards and wallets")
+    Rel(shopper, web, "Checks out", "HTTPS")
+    RelIndex(2, web, orders, "Creates order", "gRPC")
+    Rel_D(orders, db, "Stores")
+    Rel_U(orders, events, "Publishes OrderPlaced")
+    RelIndex(Index(), orders, psp, "Charges", "REST")
