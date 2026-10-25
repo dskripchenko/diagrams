@@ -75,6 +75,13 @@ on a container, in a dark-mode media query — restyle it.
 | `--dg-state-start` | `#1f2937` | start and end states, fork bars |
 | `--dg-pie-1` … `--dg-pie-12` | a 12-colour palette | pie slices, timeline sections and periods, XY chart series, mind map branches |
 | `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | slice borders, percentages; text on solid timeline headers |
+| `--dg-c4-person-fill` / `-stroke` / `-text` | `#08427b` / `#052e56` / `#ffffff` | C4 persons |
+| `--dg-c4-system-fill` / `-stroke` / `-text` | `#1168bd` / `#0b4884` / `#ffffff` | C4 software systems |
+| `--dg-c4-container-fill` / `-stroke` / `-text` | `#438dd5` / `#2e6295` / `#ffffff` | C4 containers |
+| `--dg-c4-component-fill` / `-stroke` / `-text` | `#85bbf0` / `#5d82a8` / `#0b2540` | C4 components |
+| `--dg-c4-external-fill` / `-stroke` / `-text` | `#7b7b7b` / `#5c5c5c` / `#ffffff` | external C4 elements (`_Ext`) |
+| `--dg-c4-boundary-stroke` / `-text` | `#6b7280` / `#1f2937` | C4 boundaries (dashed frames); default to `--dg-text-muted` / `--dg-text` |
+| `--dg-c4-node-fill` / `-stroke` / `-text` | translucent grey / `#6b7280` / `#1f2937` | C4 deployment nodes; stroke and text default to `--dg-text-muted` / `--dg-text` |
 
 The list is also exported as `THEME_VARIABLES` (variable → default), for
 tools that generate a theme.

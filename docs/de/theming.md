@@ -76,6 +76,13 @@ Aussehen ändern.
 | `--dg-state-start` | `#1f2937` | Start- und Endzustände, Gabelungsbalken |
 | `--dg-pie-1` … `--dg-pie-12` | eine Palette aus 12 Farben | Kreissegmente, Abschnitte und Zeiträume der Zeitleiste, Reihen des XY-Diagramms, Äste der Mindmap |
 | `--dg-pie-stroke` / `--dg-pie-text` | `#ffffff` / `#ffffff` | Segmentränder, Prozentwerte; Text auf gefüllten Zeitleisten-Köpfen |
+| `--dg-c4-person-fill` / `-stroke` / `-text` | `#08427b` / `#052e56` / `#ffffff` | C4-Personen |
+| `--dg-c4-system-fill` / `-stroke` / `-text` | `#1168bd` / `#0b4884` / `#ffffff` | C4-Softwaresysteme |
+| `--dg-c4-container-fill` / `-stroke` / `-text` | `#438dd5` / `#2e6295` / `#ffffff` | C4-Container |
+| `--dg-c4-component-fill` / `-stroke` / `-text` | `#85bbf0` / `#5d82a8` / `#0b2540` | C4-Komponenten |
+| `--dg-c4-external-fill` / `-stroke` / `-text` | `#7b7b7b` / `#5c5c5c` / `#ffffff` | externe C4-Elemente (`_Ext`) |
+| `--dg-c4-boundary-stroke` / `-text` | `#6b7280` / `#1f2937` | C4-Grenzen (gestrichelte Rahmen); Standard ist `--dg-text-muted` / `--dg-text` |
+| `--dg-c4-node-fill` / `-stroke` / `-text` | durchscheinendes Grau / `#6b7280` / `#1f2937` | C4-Deployment-Knoten; Rand und Text folgen standardmäßig `--dg-text-muted` / `--dg-text` |
 
 Die Liste wird außerdem als `THEME_VARIABLES` (Variable → Standardwert)
 exportiert, für Werkzeuge, die ein Theme erzeugen.

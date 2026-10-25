@@ -109,6 +109,33 @@ const html = `<!doctype html><meta charset="utf-8">
         for (const { id, b } of boxes) if (overlap(lb, b, 1)) problems.push({ label: label.parentNode.textContent || label.textContent, over: id })
       }
     }
+    // C4: every line of an element's text inside its shape; elements apart
+    // from each other, inside their own boundary and outside every other one.
+    const c4 = [...svg.querySelectorAll('.dg-c4-element')].map((g) => ({
+      id: g.getAttribute('data-id'),
+      parent: g.getAttribute('data-parent'),
+      box: g.querySelector('.dg-shape').getBBox(),
+      texts: [...g.querySelectorAll('text')],
+    }))
+    const frames = new Map(
+      [...svg.querySelectorAll('.dg-c4-boundary, .dg-c4-node')].map((g) => [
+        g.getAttribute('data-id'),
+        { parent: g.getAttribute('data-parent'), box: g.querySelector('rect').getBBox() },
+      ]),
+    )
+    const overlap = (a, b) => a.x < b.x + b.width - 1 && b.x < a.x + a.width - 1 && a.y < b.y + b.height - 1 && b.y < a.y + a.height - 1
+    const inside = (a, b) => a.x >= b.x - 1 && a.y >= b.y - 1 && a.x + a.width <= b.x + b.width + 1 && a.y + a.height <= b.y + b.height + 1
+    for (const e of c4) {
+      for (const t of e.texts.slice(1)) {
+        if (!inside(t.getBBox(), e.box)) problems.push({ id: e.id, textOutside: t.textContent })
+      }
+      const ancestors = new Set()
+      for (let p = e.parent; p; p = frames.get(p)?.parent) ancestors.add(p)
+      for (const [fid, f] of frames) {
+        if (ancestors.has(fid) ? !inside(e.box, f.box) : overlap(e.box, f.box)) problems.push({ id: e.id, frame: fid })
+      }
+    }
+    c4.forEach((a, i) => c4.slice(i + 1).forEach((b) => overlap(a.box, b.box) && problems.push({ overlap: [a.id, b.id] })))
     results.push({ name: f.name, problems })
   }
   window.__results = results

@@ -57,6 +57,27 @@ export const VARIABLES: Readonly<Record<string, string>> = {
   '--dg-rect-fill': 'rgba(148, 163, 184, 0.12)',
   '--dg-pie-stroke': '#ffffff',
   '--dg-pie-text': '#ffffff',
+  // C4: the C4 model's own palette, legible in light and dark pages alike.
+  '--dg-c4-person-fill': '#08427b',
+  '--dg-c4-person-stroke': '#052e56',
+  '--dg-c4-person-text': '#ffffff',
+  '--dg-c4-system-fill': '#1168bd',
+  '--dg-c4-system-stroke': '#0b4884',
+  '--dg-c4-system-text': '#ffffff',
+  '--dg-c4-container-fill': '#438dd5',
+  '--dg-c4-container-stroke': '#2e6295',
+  '--dg-c4-container-text': '#ffffff',
+  '--dg-c4-component-fill': '#85bbf0',
+  '--dg-c4-component-stroke': '#5d82a8',
+  '--dg-c4-component-text': '#0b2540',
+  '--dg-c4-external-fill': '#7b7b7b',
+  '--dg-c4-external-stroke': '#5c5c5c',
+  '--dg-c4-external-text': '#ffffff',
+  '--dg-c4-boundary-stroke': '#6b7280',
+  '--dg-c4-boundary-text': '#1f2937',
+  '--dg-c4-node-fill': 'rgba(148, 163, 184, 0.08)',
+  '--dg-c4-node-stroke': '#6b7280',
+  '--dg-c4-node-text': '#1f2937',
 }
 
 /** Slice colours for pie charts, cycled. */

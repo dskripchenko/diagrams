@@ -19,6 +19,7 @@ import { parseXyChart, renderXyChart } from './diagrams/xychart'
 import { parseMindmap, renderMindmap } from './diagrams/mindmap'
 import { parseEr, renderEr } from './diagrams/er'
 import { parseClass, renderClass } from './diagrams/class'
+import { parseC4, renderC4 } from './diagrams/c4'
 
 export { DiagramError } from './core/errors'
 export type { RenderOptions, RenderResult } from './core/document'
@@ -37,6 +38,7 @@ export type DiagramType =
   | 'mindmap'
   | 'er'
   | 'class'
+  | 'c4'
 
 interface DiagramModule {
   parse(source: string): unknown
@@ -61,6 +63,7 @@ const MODULES: Record<DiagramType, DiagramModule> = {
   mindmap: { parse: parseMindmap, render: renderMindmap as DiagramModule['render'] },
   er: { parse: parseEr, render: renderEr as DiagramModule['render'] },
   class: { parse: parseClass, render: renderClass as DiagramModule['render'] },
+  c4: { parse: parseC4, render: renderC4 as DiagramModule['render'] },
 }
 
 const KEYWORDS: Record<string, DiagramType> = {
@@ -79,6 +82,11 @@ const KEYWORDS: Record<string, DiagramType> = {
   erDiagram: 'er',
   classDiagram: 'class',
   'classDiagram-v2': 'class',
+  C4Context: 'c4',
+  C4Container: 'c4',
+  C4Component: 'c4',
+  C4Dynamic: 'c4',
+  C4Deployment: 'c4',
 }
 
 /** The diagram type a source declares on its first line, or null. */
