@@ -32,7 +32,7 @@ container.innerHTML = result.svg
 ```
 
 类型由第一行决定：`flowchart` 或 `graph`、`sequenceDiagram`、
-`stateDiagram-v2`（或 `stateDiagram`）、`pie`、`gantt`。
+`stateDiagram-v2`（或 `stateDiagram`）、`erDiagram`、`classDiagram`、`pie`、`gantt`。
 
 ## 选项
 
@@ -138,5 +138,5 @@ SVG 可以安全地作为标记插入：其中的每一段文本都已由本包�
 
 ## 限制
 
-流程图或状态图最多可包含 500 个节点和 2000 条边；超过后布局的运行时间将不再可预测，
+流程图、状态图、ER 图或类图最多可包含 500 个节点和 2000 条边；超过后布局的运行时间将不再可预测，
 渲染会抛出 `DiagramError` 并建议拆分图表。500 个节点的布局耗时远低于一秒。

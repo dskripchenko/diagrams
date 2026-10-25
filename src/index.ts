@@ -14,6 +14,8 @@ import { parseGantt, renderGantt } from './diagrams/gantt'
 import { parseFlowchart, renderFlowchart } from './diagrams/flowchart'
 import { parseSequence, renderSequence } from './diagrams/sequence'
 import { parseState, renderState } from './diagrams/state'
+import { parseEr, renderEr } from './diagrams/er'
+import { parseClass, renderClass } from './diagrams/class'
 
 export { DiagramError } from './core/errors'
 export type { RenderOptions, RenderResult } from './core/document'
@@ -21,7 +23,7 @@ export type { TextMeasurer, FontSpec, TextSize } from './core/text'
 export { approximateMeasurer, defaultMeasurer } from './core/text'
 export { VARIABLES as THEME_VARIABLES } from './core/theme'
 
-export type DiagramType = 'pie' | 'gantt' | 'flowchart' | 'sequence' | 'state'
+export type DiagramType = 'pie' | 'gantt' | 'flowchart' | 'sequence' | 'state' | 'er' | 'class'
 
 interface DiagramModule {
   parse(source: string): unknown
@@ -41,6 +43,8 @@ const MODULES: Record<DiagramType, DiagramModule> = {
   flowchart: { parse: parseFlowchart, render: renderFlowchart as DiagramModule['render'] },
   sequence: { parse: parseSequence, render: renderSequence as DiagramModule['render'] },
   state: { parse: parseState, render: renderState as DiagramModule['render'] },
+  er: { parse: parseEr, render: renderEr as DiagramModule['render'] },
+  class: { parse: parseClass, render: renderClass as DiagramModule['render'] },
 }
 
 const KEYWORDS: Record<string, DiagramType> = {
@@ -52,6 +56,9 @@ const KEYWORDS: Record<string, DiagramType> = {
   sequenceDiagram: 'sequence',
   stateDiagram: 'state',
   'stateDiagram-v2': 'state',
+  erDiagram: 'er',
+  classDiagram: 'class',
+  'classDiagram-v2': 'class',
 }
 
 /** The diagram type a source declares on its first line, or null. */

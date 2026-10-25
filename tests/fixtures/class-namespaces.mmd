@@ -1,0 +1,27 @@
+classDiagram
+    direction LR
+    namespace Geometry {
+        class Point {
+            +double x
+            +double y
+        }
+        class Line {
+            +Point a
+            +Point b
+            +length() double
+        }
+    }
+    namespace Rendering {
+        class Renderer {
+            <<abstract>>
+            +render(Line line)*
+        }
+        class SvgRenderer
+    }
+    Line "1" *-- "2" Point
+    Renderer <|-- SvgRenderer
+    Renderer ..> Line : reads
+    note "Free-standing note"
+    classDef accent fill:#fef3c7,stroke:#d97706,color:#78350f
+    cssClass "SvgRenderer" accent
+    link Line "https://example.com/line" "Line docs"

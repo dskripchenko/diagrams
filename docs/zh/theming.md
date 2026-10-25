@@ -22,6 +22,8 @@
     --dg-node-fill: #1e1b4b;
     --dg-node-stroke: #818cf8;
     --dg-node-text: #e0e7ff;
+    --dg-row-fill: #0f172a;
+    --dg-row-alt-fill: #161e33;
     --dg-cluster-fill: #111827;
     --dg-cluster-stroke: #334155;
     --dg-cluster-text: #cbd5e1;
@@ -49,9 +51,10 @@
 | `--dg-text` | `#1f2937` | 一般文本 |
 | `--dg-text-muted` | `#6b7280` | 次要文本：守卫条件、坐标轴标签 |
 | `--dg-line` | `#64748b` | 边、箭头、消息线 |
-| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | 流程图节点、状态 |
+| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | 流程图节点、状态；实体与类的标题栏 |
+| `--dg-row-fill` / `--dg-row-alt-fill` | `#ffffff` / `#f5f7ff` | 实体的行（交替）和类的成员栏 |
 | `--dg-cluster-fill` / `-stroke` / `-text` | `#f8fafc` / `#cbd5e1` / `#334155` | 子图、复合状态 |
-| `--dg-edge-label-fill` | `#ffffff` | 边文本背后的底框——设为页面背景色 |
+| `--dg-edge-label-fill` | `#ffffff` | 边文本背后的底框、空心线端的内部——设为页面背景色 |
 | `--dg-note-fill` / `-stroke` / `-text` | `#fef9c3` / `#ca8a04` / `#422006` | 注解 |
 | `--dg-actor-fill` / `-stroke` | `#eef2ff` / `#6366f1` | 时序图参与者 |
 | `--dg-activation-fill` | `#e0e7ff` | 激活条 |

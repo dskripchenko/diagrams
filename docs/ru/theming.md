@@ -23,6 +23,8 @@
     --dg-node-fill: #1e1b4b;
     --dg-node-stroke: #818cf8;
     --dg-node-text: #e0e7ff;
+    --dg-row-fill: #0f172a;
+    --dg-row-alt-fill: #161e33;
     --dg-cluster-fill: #111827;
     --dg-cluster-stroke: #334155;
     --dg-cluster-text: #cbd5e1;
@@ -50,9 +52,10 @@
 | `--dg-text` | `#1f2937` | основной текст |
 | `--dg-text-muted` | `#6b7280` | второстепенный текст: условия, подписи оси |
 | `--dg-line` | `#64748b` | рёбра, стрелки, линии сообщений |
-| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | узлы блок-схем, состояния |
+| `--dg-node-fill` / `-stroke` / `-text` | `#eef2ff` / `#6366f1` / `#1e1b4b` | узлы блок-схем, состояния; заголовки сущностей и классов |
+| `--dg-row-fill` / `--dg-row-alt-fill` | `#ffffff` / `#f5f7ff` | строки сущностей (через одну) и секции классов |
 | `--dg-cluster-fill` / `-stroke` / `-text` | `#f8fafc` / `#cbd5e1` / `#334155` | подграфы, составные состояния |
-| `--dg-edge-label-fill` | `#ffffff` | подложка под текстом рёбер — задайте ей цвет фона страницы |
+| `--dg-edge-label-fill` | `#ffffff` | подложка под текстом рёбер, заливка полых наконечников — задайте ей цвет фона страницы |
 | `--dg-note-fill` / `-stroke` / `-text` | `#fef9c3` / `#ca8a04` / `#422006` | заметки |
 | `--dg-actor-fill` / `-stroke` | `#eef2ff` / `#6366f1` | участники диаграммы последовательности |
 | `--dg-activation-fill` | `#e0e7ff` | полосы активации |

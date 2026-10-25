@@ -20,6 +20,7 @@ const DARK = `
   .dark { background: #0f172a; color-scheme: dark;
     --dg-text: #e2e8f0; --dg-text-muted: #94a3b8; --dg-line: #94a3b8;
     --dg-node-fill: #1e1b4b; --dg-node-stroke: #818cf8; --dg-node-text: #e0e7ff;
+    --dg-row-fill: #0f172a; --dg-row-alt-fill: #161e33;
     --dg-cluster-fill: #111827; --dg-cluster-stroke: #334155; --dg-cluster-text: #cbd5e1;
     --dg-edge-label-fill: #0f172a; --dg-note-fill: #422006; --dg-note-stroke: #ca8a04; --dg-note-text: #fef9c3;
     --dg-actor-fill: #1e1b4b; --dg-actor-stroke: #818cf8; --dg-activation-fill: #312e81;
@@ -71,6 +72,43 @@ const html = `<!doctype html><meta charset="utf-8">
       const t = text.getBBox()
       if (t.width > s.width + 1 || t.height > s.height + 1) problems.push({ edgeLabel: text.textContent, box: [s.width, s.height].map(Math.round), label: [t.width, t.height].map(Math.round) })
     }
+    // Boxes of rows (entities, classes): every text inside its box, no two
+    // texts overlapping, every edge ending on a box border, labels clear of boxes.
+    const rowBoxes = [...svg.querySelectorAll('.dg-entity, .dg-uml-class')]
+    if (rowBoxes.length > 0) {
+      const boxes = rowBoxes.map((g) => ({ id: g.getAttribute('data-id'), b: g.querySelector('.dg-shape').getBBox() }))
+      const overlap = (a, b, pad = 0) =>
+        a.x < b.x + b.width - pad && b.x < a.x + a.width - pad && a.y < b.y + b.height - pad && b.y < a.y + a.height - pad
+      for (const [i, g] of rowBoxes.entries()) {
+        const s = boxes[i].b
+        const texts = [...g.querySelectorAll('text')].filter((t) => t.textContent.trim()).map((t) => ({ t: t.textContent, b: t.getBBox() }))
+        for (const { t, b } of texts) {
+          if (b.x < s.x - 1 || b.y < s.y - 1 || b.x + b.width > s.x + s.width + 1 || b.y + b.height > s.y + s.height + 1) {
+            problems.push({ box: boxes[i].id, outside: t })
+          }
+        }
+        for (let a = 0; a < texts.length; a++)
+          for (let c = a + 1; c < texts.length; c++)
+            if (overlap(texts[a].b, texts[c].b, 2)) problems.push({ box: boxes[i].id, overlapping: [texts[a].t, texts[c].t] })
+      }
+      const onBorder = (p) =>
+        boxes.some(({ b }) => {
+          const inX = p.x >= b.x - 1 && p.x <= b.x + b.width + 1
+          const inY = p.y >= b.y - 1 && p.y <= b.y + b.height + 1
+          const nearX = Math.abs(p.x - b.x) <= 1 || Math.abs(p.x - b.x - b.width) <= 1
+          const nearY = Math.abs(p.y - b.y) <= 1 || Math.abs(p.y - b.y - b.height) <= 1
+          return (inX && nearY) || (inY && nearX)
+        })
+      for (const path of svg.querySelectorAll('.dg-edge')) {
+        const nums = (path.getAttribute('d').match(/-?[0-9.]+/g) ?? []).map(Number)
+        const ends = [{ x: nums[0], y: nums[1] }, { x: nums[nums.length - 2], y: nums[nums.length - 1] }]
+        for (const p of ends) if (!onBorder(p)) problems.push({ edge: path.getAttribute('data-from') + '→' + path.getAttribute('data-to'), offBorder: [p.x, p.y].map(Math.round) })
+      }
+      for (const label of svg.querySelectorAll('.dg-edge-label-box, .dg-uml-cardinality')) {
+        const lb = label.getBBox()
+        for (const { id, b } of boxes) if (overlap(lb, b, 1)) problems.push({ label: label.parentNode.textContent || label.textContent, over: id })
+      }
+    }
     results.push({ name: f.name, problems })
   }
   window.__results = results
@@ -105,7 +143,7 @@ for (const r of results) {
     console.error(`✗ ${r.name}: ${r.error}`)
   } else if (r.problems.length > 0) {
     failed = true
-    console.error(`✗ ${r.name}: ${r.problems.length} label(s) do not fit`)
+    console.error(`✗ ${r.name}: ${r.problems.length} problem(s): labels that do not fit or overlap, edges off their boxes`)
     for (const p of r.problems) console.error('   ', JSON.stringify(p))
   } else {
     console.log(`✓ ${r.name}`)

@@ -21,12 +21,13 @@ element.innerHTML = svg
 ```
 
 **Supported:** `flowchart` (with subgraphs and per-subgraph direction),
-`sequenceDiagram`, `stateDiagram-v2`, `pie`, `gantt`.
+`sequenceDiagram`, `stateDiagram-v2`, `erDiagram`, `classDiagram`, `pie`,
+`gantt`.
 
 ## Why another renderer
 
 - **Zero dependencies.** Mermaid pulls in d3, dagre, DOMPurify and more —
-  megabytes. This package is one module under 60 KB gzipped before your
+  megabytes. This package is one module under 75 KB gzipped before your
   bundler minifies it, layout engine included.
 - **Safe by construction.** Every label and attribute is escaped by the one
   SVG builder that produces the output; HTML in labels is shown as text.
@@ -52,6 +53,8 @@ than a silently wrong picture.
 | Flowchart | [en](docs/en/flowchart.md) | [ru](docs/ru/flowchart.md) | [de](docs/de/flowchart.md) | [zh](docs/zh/flowchart.md) |
 | Sequence diagram | [en](docs/en/sequence.md) | [ru](docs/ru/sequence.md) | [de](docs/de/sequence.md) | [zh](docs/zh/sequence.md) |
 | State diagram | [en](docs/en/state.md) | [ru](docs/ru/state.md) | [de](docs/de/state.md) | [zh](docs/zh/state.md) |
+| Entity relationship diagram | [en](docs/en/er.md) | [ru](docs/ru/er.md) | [de](docs/de/er.md) | [zh](docs/zh/er.md) |
+| Class diagram | [en](docs/en/class.md) | [ru](docs/ru/class.md) | [de](docs/de/class.md) | [zh](docs/zh/class.md) |
 | Pie chart | [en](docs/en/pie.md) | [ru](docs/ru/pie.md) | [de](docs/de/pie.md) | [zh](docs/zh/pie.md) |
 | Gantt chart | [en](docs/en/gantt.md) | [ru](docs/ru/gantt.md) | [de](docs/de/gantt.md) | [zh](docs/zh/gantt.md) |
 | Theming | [en](docs/en/theming.md) | [ru](docs/ru/theming.md) | [de](docs/de/theming.md) | [zh](docs/zh/theming.md) |

@@ -1,0 +1,13 @@
+erDiagram
+    direction LR
+    p["Person"] {
+        string firstName
+        string lastName
+    }
+    a["Customer Account"] {
+        string email PK
+    }
+    p 1 to zero or more a : owns
+    a one or more optionally to only one "Billing Plan" : "is billed by"
+    classDef highlight fill:#fef3c7,stroke:#d97706,color:#78350f
+    class p highlight
