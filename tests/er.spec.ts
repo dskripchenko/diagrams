@@ -190,7 +190,10 @@ describe('ER rendering', () => {
     for (let i = 0; i < 700; i++) lines.push(`  E${i % 500} ||--o{ E${Math.floor(r() * 500)} : r${i}`)
     const start = performance.now()
     render(lines.join('\n'), opts)
-    expect(performance.now() - start).toBeLessThan(3000)
+    // About 0.5 s on a laptop; a shared CI runner, with the other suites in
+    // parallel, takes several times that. The quadratic crossing refinement
+    // this guards against took 12 s.
+    expect(performance.now() - start).toBeLessThan(8000)
   })
 
   it('keeps a user fill on the header band only', () => {
