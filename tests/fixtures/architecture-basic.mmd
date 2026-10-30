@@ -1,0 +1,13 @@
+architecture-beta
+  group api(cloud)[API]
+  service db(database)[Database] in api
+  service disk(disk)[Storage] in api
+  service server(server)[Server] in api
+  junction hub in api
+  service gateway(internet)[Gateway]
+  service queue(aws:sqs)[Queue]
+  db:L -- R:server
+  disk:T -- B:hub
+  hub:T -- B:server
+  gateway:R --> L:server
+  server:R -[events]-> L:queue

@@ -56,6 +56,13 @@ export const VARIABLES: Readonly<Record<string, string>> = {
   '--dg-number-text': '#ffffff',
   '--dg-rect-fill': 'rgba(148, 163, 184, 0.12)',
   '--dg-pie-stroke': '#ffffff',
+  '--dg-journey-face': '#fde68a',
+  '--dg-journey-face-sad': '#fecaca',
+  '--dg-journey-face-happy': '#bbf7d0',
+  '--dg-quadrant-1': 'rgba(99, 102, 241, 0.12)',
+  '--dg-quadrant-2': 'rgba(14, 165, 233, 0.10)',
+  '--dg-quadrant-3': 'rgba(148, 163, 184, 0.12)',
+  '--dg-quadrant-4': 'rgba(16, 185, 129, 0.10)',
   '--dg-pie-text': '#ffffff',
   // C4: the C4 model's own palette, legible in light and dark pages alike.
   '--dg-c4-person-fill': '#08427b',

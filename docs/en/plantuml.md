@@ -22,11 +22,15 @@ messages — sequence. `detect()` reports `sequence`, or `flowchart` for the
 others (that is the model they are drawn with).
 
 Supported: **sequence**, **use case**, **component**, **deployment**,
-**activity**, **class**, **object**, **state** and **ER** (Information
-Engineering) diagrams. C4, mind map, Gantt, timing and Salt come in later
-releases; a source of those raises an error saying so. `detect()` reports
-the model a diagram is drawn with: `sequence`, `flowchart` (use case,
-component, deployment, activity), `class` (class, object), `state`, `er`.
+**activity**, **class**, **object**, **state**, **ER** (Information
+Engineering), **C4** (C4-PlantUML), **timing** diagrams and **Salt**
+wireframes in `@startuml`; **mind maps** (`@startmindmap`), **work
+breakdown structures** (`@startwbs`), **Gantt charts** (`@startgantt`) and
+**Salt** (`@startsalt`). Other `@start…` frames (JSON, YAML, …) raise an
+error saying so. `detect()` reports the model a diagram is drawn with:
+`sequence`, `flowchart` (use case, component, deployment, activity), `class`
+(class, object), `state`, `er`, `c4`, `mindmap` (mind map, WBS), `gantt`,
+`timing`, `salt`.
 
 ## Common to every diagram
 
@@ -215,3 +219,162 @@ Customer ||--o{ O : places
 
 A diagram is ER when it has crow's foot links or entities with bodies and
 no class keywords.
+
+## C4 (C4-PlantUML)
+
+```
+@startuml
+!include <C4/C4_Container>
+Person(user, "Customer")
+System_Boundary(shop, "Shop") {
+  Container(web, "Web app", "React")
+  ContainerDb(db, "Orders", "PostgreSQL")
+}
+Rel(user, web, "Uses", "HTTPS")
+Rel(web, db, "Reads/writes")
+SHOW_LEGEND()
+@enduml
+```
+
+The macros are those of [C4](c4.md) — elements, boundaries, `Rel`,
+`BiRel`, `Rel_U/D/L/R`, `Rel_Back`, `UpdateElementStyle`, layout macros.
+
+| Syntax | |
+|---|---|
+| `!include <C4/C4_Container>`, `!include https://…/C4_Container.puml` | the level: `C4_Context`, `C4_Container`, `C4_Component`, `C4_Dynamic`, `C4_Deployment`; the deepest one included counts. The library itself is not fetched. Any other `!include` is still an error |
+| `SHOW_LEGEND()`, `LAYOUT_WITH_LEGEND()`, `LAYOUT_AS_SKETCH()`, `HIDE_*`, `Add…Tag`, `Update…Tag`, `Lay_*`, `SetPropertyHeader`, `AddProperty` | skipped: presentation only |
+| `Rel_Neighbor`, `BiRel_Neighbor`, `Rel_Back_Neighbor` | plain relations |
+
+A diagram with C4 macros (`Person(…)`, `Container(…)`, `Rel(…)`…) is C4
+even without the include; its level is then Context.
+
+## Mind maps and work breakdown structures
+
+```
+@startmindmap
+* Release
+** Backend
+***_ boxless note
+** Frontend
+***:a node over
+two lines;
+left side
+** Docs
+@endmindmap
+```
+
+| Syntax | |
+|---|---|
+| `*`, `**`, … (or `+` / `-`, OrgMode; or `#`) | a node at that depth; one root |
+| `*_ text` | a node without a box |
+| `*[#Orange] text` | a colour, accepted |
+| `**:first line` … `last line;` | a node over several lines |
+| `left side`, `right side` | accepted; the layout places branches itself |
+
+`@startwbs` reads the same tree and draws it as a mind map.
+
+## Gantt charts
+
+```
+@startgantt
+Project starts 2026-03-02
+saturday are closed
+sunday are closed
+-- Design --
+[Discovery] lasts 5 days
+[Wireframes] starts at [Discovery]'s end and lasts 4 days
+-- Build --
+[API] as [A] lasts 2 weeks
+[A] starts at [Wireframes]'s end
+[A] is 40% completed
+then [Frontend] lasts 8 days
+[Release] happens at [Frontend]'s end
+@endgantt
+```
+
+| Syntax | |
+|---|---|
+| `Project starts 2026-03-02` | the start of tasks with no start of their own |
+| `[Task] lasts 5 days`, `requires 2 weeks` | the duration |
+| `[Task] starts 2026-03-10`, `starts at [X]'s end`, `starts at [X]'s start` | the start |
+| `[Task] ends 2026-03-20`, `ends at [X]'s start` | the end |
+| `then [Task] …` | starts at the previous task's end |
+| `[A] -> [B]` | B starts at A's end |
+| `[Task] as [T]` | an alias |
+| `[M] happens at [X]'s end`, `happens 2026-03-30` | a milestone |
+| `[Task] is 40% completed`, `is completed` | in progress (with the percentage in its name) or done |
+| `-- Section --` | a section |
+| `saturday are closed`, `2026-03-09 is closed` | days that do not count |
+| clauses joined with `and` | `[A] starts at [B]'s end and lasts 3 days` |
+| colours, resources (`on {Alice}`), `printscale`, `language`, `today` | accepted |
+
+Not supported: offsets (`starts 2 days after [X]'s end`) — an error says so.
+Tasks are drawn in an order where each comes after those it depends on.
+
+## Timing diagrams
+
+```
+@startuml
+robust "Web browser" as WB
+concise "User" as WU
+clock "Clock" as C with period 50
+WB has Idle,Waiting,Processing
+@0
+WU is Idle
+WB is Idle
+@100
+WU is Waiting
+WB is Processing
+WU -> WB : request
+@300
+WB is Waiting
+highlight 200 to 300 #Gold : network
+@enduml
+```
+
+| Syntax | |
+|---|---|
+| `robust "Name" as N` | levels, stepped |
+| `concise "Name" as N` | the state as a band with its name |
+| `binary "Name" as N` | high or low |
+| `clock "Name" as N with period 50 [pulse 15] [offset 10]` | a square wave |
+| `N has A,B,C` | a robust signal's levels, top to bottom (otherwise the order they appear in) |
+| `@100`, `@+50` | the moment the statements after it happen at |
+| `N is State`, `N is "Long state"`, `N is {-}` | a change; `{-}` / `{hidden}` show nothing |
+| `@N` then `0 is A`, `+100 is B` | the same, written per signal |
+| `A -> B : text`, `A -> B@+20 : text` | a message at the moment, optionally arriving later |
+| `highlight 200 to 300 #Gold : text` | a shaded span |
+
+## Salt wireframes
+
+```
+@startsalt
+{+
+  Login    | "MyName   "
+  Password | "****     "
+  [X] Remember me | ^English^
+  [Cancel] | [  OK   ]
+}
+@endsalt
+```
+
+A Salt diagram is `@startsalt … @endsalt`, or `@startuml` whose first line
+is `salt`.
+
+| Syntax | |
+|---|---|
+| `{ … }` | a grid: rows on lines, cells split by `\|`; blocks nest inside cells |
+| `{+`, `{#`, `{!`, `{-` | an outer border; all lines; column lines; row lines |
+| `[Button]` | a button |
+| `"text field   "` | a text field; trailing spaces widen it |
+| `[X] checked`, `[] unchecked` | check boxes |
+| `(X) selected`, `() not selected` | radio buttons |
+| `^drop-down^` | a drop-down list |
+| text, `<b>bold</b>` | a label |
+| `.` | an empty cell |
+| `..`, `==`, `~~`, `--` on a row of their own | separators: dotted, double, dashed, solid |
+| `{/ <b>Tab one \| Tab two }` | tabs; the bold one is selected; one tab per line makes them vertical |
+| `{* File \| Edit \| View }` | a menu bar |
+| `{T` with `+ root`, `++ child` | a tree |
+| `{^"Title"` | a group box |
+| `{S` | a scroll pane |

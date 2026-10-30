@@ -9,12 +9,22 @@
  */
 import { DiagramError } from '../core/errors'
 import type { Statement } from '../core/scanner'
+import type { C4Diagram } from '../diagrams/c4/parser'
 import type { ClassDiagram } from '../diagrams/class/parser'
 import type { ErDiagram } from '../diagrams/er/parser'
+import type { GanttDiagram } from '../diagrams/gantt/parser'
+import type { MindmapDiagram } from '../diagrams/mindmap/parser'
+import type { SaltDiagram } from '../diagrams/salt'
+import type { TimingDiagram } from '../diagrams/timing'
 import type { Flowchart } from '../diagrams/flowchart/parser'
 import type { SequenceDiagram } from '../diagrams/sequence/parser'
 import type { StateDiagram } from '../diagrams/state/parser'
 import { parsePlantUmlActivity } from './activity'
+import { looksLikeC4, parsePlantUmlC4 } from './c4'
+import { parsePlantUmlGantt } from './gantt'
+import { looksLikeSalt, parsePlantUmlSalt } from './salt'
+import { looksLikeTiming, parsePlantUmlTiming } from './timing'
+import { parsePlantUmlMindmap } from './mindmap'
 import { parsePlantUmlClass } from './class'
 import { parsePlantUmlDescription } from './description'
 import { looksLikeEr, parsePlantUmlEr } from './er'
@@ -25,12 +35,18 @@ import { readPlantUml, type PlantUmlSource } from './source'
 export { isPlantUml } from './source'
 
 /** The PlantUML diagram kinds this package reads. */
-export type PlantUmlKind = 'sequence' | 'activity' | 'description' | 'class' | 'state' | 'er'
+export type PlantUmlKind = 'sequence' | 'activity' | 'description' | 'class' | 'state' | 'er' | 'c4' | 'mindmap' | 'wbs' | 'gantt' | 'timing' | 'salt'
 
-export type PlantUmlModel = SequenceDiagram | Flowchart | ClassDiagram | StateDiagram | ErDiagram
+export type PlantUmlModel = SequenceDiagram | Flowchart | ClassDiagram | StateDiagram | ErDiagram | C4Diagram | MindmapDiagram | GanttDiagram | TimingDiagram | SaltDiagram
 
 /** The model type each kind is drawn with. */
-export const PLANTUML_MODELS: Record<PlantUmlKind, 'sequence' | 'flowchart' | 'class' | 'state' | 'er'> = {
+export const PLANTUML_MODELS: Record<PlantUmlKind, 'sequence' | 'flowchart' | 'class' | 'state' | 'er' | 'c4' | 'mindmap' | 'gantt' | 'timing' | 'salt'> = {
+  timing: 'timing',
+  salt: 'salt',
+  c4: 'c4',
+  mindmap: 'mindmap',
+  wbs: 'mindmap',
+  gantt: 'gantt',
   sequence: 'sequence',
   activity: 'flowchart',
   description: 'flowchart',
@@ -69,12 +85,19 @@ export interface ParsedPlantUml {
 
 export function parsePlantUml(source: string): ParsedPlantUml {
   const src: PlantUmlSource = readPlantUml(source)
+  if (src.frame === 'mindmap' || src.frame === 'wbs') return { kind: src.frame, model: parsePlantUmlMindmap(src) }
+  if (src.frame === 'gantt') return { kind: 'gantt', model: parsePlantUmlGantt(src) }
+  if (src.frame === 'salt' || (src.frame === 'uml' && looksLikeSalt(src))) return { kind: 'salt', model: parsePlantUmlSalt(src) }
   if (src.frame !== 'uml') {
     throw new DiagramError(`PlantUML "@start${src.frame}" diagrams are not supported yet`, 1, 1, 'Supported: @startuml sequence, use case, component, deployment, activity, class, object, state and ER diagrams.')
   }
   if (src.statements.length === 0) throw new DiagramError('The diagram is empty', 0, 0)
-  const kind = plantUmlKind(src.statements)
+  const kind: PlantUmlKind = looksLikeC4(src) ? 'c4' : looksLikeTiming(src) ? 'timing' : plantUmlKind(src.statements)
   switch (kind) {
+    case 'c4':
+      return { kind, model: parsePlantUmlC4(src) }
+    case 'timing':
+      return { kind, model: parsePlantUmlTiming(src) }
     case 'sequence':
       return { kind, model: parsePlantUmlSequence(src) }
     case 'activity':
@@ -87,5 +110,8 @@ export function parsePlantUml(source: string): ParsedPlantUml {
       return { kind, model: parsePlantUmlState(src) }
     case 'er':
       return { kind, model: parsePlantUmlEr(src) }
+    default:
+      // mindmap, wbs and gantt have frames of their own and never reach here.
+      throw new DiagramError(`"${kind}" diagrams start with their own @start line or keyword`, 1, 1)
   }
 }

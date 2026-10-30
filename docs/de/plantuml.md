@@ -22,13 +22,16 @@ Verteilung; Teilnehmer und Nachrichten — Sequenz. `detect()` meldet
 `sequence`, für die anderen `flowchart` (das Modell, mit dem sie gezeichnet
 werden).
 
-Unterstützt: **Sequenz-**, **Use-Case-**, **Komponenten-**,
-**Verteilungs-**, **Aktivitäts-**, **Klassen-**, **Objekt-**, **Zustands-**
-und **ER-Diagramme** (Information-Engineering-Notation). C4, Mindmap,
-Gantt, Timing und Salt folgen in späteren Releases; eine solche Quelle löst
-einen erklärenden Fehler aus. `detect()` meldet das Modell, mit dem ein
-Diagramm gezeichnet wird: `sequence`, `flowchart` (Use Case, Komponente,
-Verteilung, Aktivität), `class` (Klasse, Objekt), `state`, `er`.
+Unterstützt in `@startuml`: **Sequenz-**, **Use-Case-**, **Komponenten-**,
+**Verteilungs-**, **Aktivitäts-**, **Klassen-**, **Objekt-**, **Zustands-**,
+**ER-** (Information-Engineering-Notation), **C4-** (C4-PlantUML) und
+**Timing-Diagramme** sowie **Salt**-Wireframes; außerdem **Mindmaps**
+(`@startmindmap`), **Projektstrukturpläne** (`@startwbs`), **Gantt**
+(`@startgantt`) und **Salt** (`@startsalt`). Andere `@start…` (JSON, YAML,
+…) lösen einen erklärenden Fehler aus. `detect()` meldet das Modell, mit dem
+ein Diagramm gezeichnet wird: `sequence`, `flowchart` (Use Case,
+Komponente, Verteilung, Aktivität), `class` (Klasse, Objekt), `state`,
+`er`, `c4`, `mindmap` (Mindmap, WBS), `gantt`, `timing`, `salt`.
 
 ## Gemeinsam für alle Diagramme
 
@@ -217,3 +220,163 @@ Customer ||--o{ O : places
 
 Ein Diagramm ist ER, wenn es Krähenfuß-Verbindungen oder Entitäten mit
 Rumpf und keine Klassen-Schlüsselwörter hat.
+
+## C4 (C4-PlantUML)
+
+```
+@startuml
+!include <C4/C4_Container>
+Person(user, "Customer")
+System_Boundary(shop, "Shop") {
+  Container(web, "Web app", "React")
+  ContainerDb(db, "Orders", "PostgreSQL")
+}
+Rel(user, web, "Uses", "HTTPS")
+Rel(web, db, "Reads/writes")
+SHOW_LEGEND()
+@enduml
+```
+
+Die Makros sind die von [C4](c4.md): Elemente, Grenzen, `Rel`, `BiRel`,
+`Rel_U/D/L/R`, `Rel_Back`, `UpdateElementStyle`, Layout-Makros.
+
+| Syntax | |
+|---|---|
+| `!include <C4/C4_Container>`, `!include https://…/C4_Container.puml` | die Ebene: `C4_Context`, `C4_Container`, `C4_Component`, `C4_Dynamic`, `C4_Deployment`; die tiefste eingebundene zählt. Die Bibliothek selbst wird nicht geladen. Jedes andere `!include` bleibt ein Fehler |
+| `SHOW_LEGEND()`, `LAYOUT_WITH_LEGEND()`, `LAYOUT_AS_SKETCH()`, `HIDE_*`, `Add…Tag`, `Update…Tag`, `Lay_*`, `SetPropertyHeader`, `AddProperty` | übersprungen: nur Darstellung |
+| `Rel_Neighbor`, `BiRel_Neighbor`, `Rel_Back_Neighbor` | normale Beziehungen |
+
+Ein Diagramm mit C4-Makros (`Person(…)`, `Container(…)`, `Rel(…)`…) ist auch
+ohne Include C4; die Ebene ist dann Context.
+
+## Mindmaps und Projektstrukturpläne
+
+```
+@startmindmap
+* Release
+** Backend
+***_ Knoten ohne Rahmen
+** Frontend
+***:ein Knoten über
+zwei Zeilen;
+left side
+** Docs
+@endmindmap
+```
+
+| Syntax | |
+|---|---|
+| `*`, `**`, … (oder `+` / `-` im OrgMode-Stil, oder `#`) | ein Knoten in dieser Tiefe; eine Wurzel |
+| `*_ Text` | ein Knoten ohne Rahmen |
+| `*[#Orange] Text` | eine Farbe, akzeptiert |
+| `**:erste Zeile` … `letzte;` | ein mehrzeiliger Knoten |
+| `left side`, `right side` | akzeptiert; das Layout setzt die Zweige selbst |
+
+`@startwbs` liest denselben Baum und zeichnet ihn als Mindmap.
+
+## Gantt-Diagramme
+
+```
+@startgantt
+Project starts 2026-03-02
+saturday are closed
+sunday are closed
+-- Design --
+[Discovery] lasts 5 days
+[Wireframes] starts at [Discovery]'s end and lasts 4 days
+-- Build --
+[API] as [A] lasts 2 weeks
+[A] starts at [Wireframes]'s end
+[A] is 40% completed
+then [Frontend] lasts 8 days
+[Release] happens at [Frontend]'s end
+@endgantt
+```
+
+| Syntax | |
+|---|---|
+| `Project starts 2026-03-02` | der Start von Aufgaben ohne eigenen Start |
+| `[Aufgabe] lasts 5 days`, `requires 2 weeks` | die Dauer |
+| `[Aufgabe] starts 2026-03-10`, `starts at [X]'s end`, `starts at [X]'s start` | der Start |
+| `[Aufgabe] ends 2026-03-20`, `ends at [X]'s start` | das Ende |
+| `then [Aufgabe] …` | beginnt am Ende der vorigen Aufgabe |
+| `[A] -> [B]` | B beginnt am Ende von A |
+| `[Aufgabe] as [T]` | ein Alias |
+| `[M] happens at [X]'s end`, `happens 2026-03-30` | ein Meilenstein |
+| `[Aufgabe] is 40% completed`, `is completed` | in Arbeit (Prozent im Namen) oder erledigt |
+| `-- Abschnitt --` | ein Abschnitt |
+| `saturday are closed`, `2026-03-09 is closed` | Tage, die nicht zählen |
+| mit `and` verbundene Klauseln | `[A] starts at [B]'s end and lasts 3 days` |
+| Farben, Ressourcen (`on {Alice}`), `printscale`, `language`, `today` | akzeptiert |
+
+Nicht unterstützt: Versätze (`starts 2 days after [X]'s end`) — ein Fehler
+sagt es. Aufgaben stehen in einer Reihenfolge, in der jede nach denen kommt,
+von denen sie abhängt.
+
+## Timing-Diagramme
+
+```
+@startuml
+robust "Web browser" as WB
+concise "User" as WU
+clock "Clock" as C with period 50
+WB has Idle,Waiting,Processing
+@0
+WU is Idle
+WB is Idle
+@100
+WU is Waiting
+WB is Processing
+WU -> WB : request
+@300
+WB is Waiting
+highlight 200 to 300 #Gold : network
+@enduml
+```
+
+| Syntax | |
+|---|---|
+| `robust "Name" as N` | Ebenen, gestuft |
+| `concise "Name" as N` | der Zustand als Band mit seinem Namen |
+| `binary "Name" as N` | hoch oder niedrig |
+| `clock "Name" as N with period 50 [pulse 15] [offset 10]` | eine Rechteckwelle |
+| `N has A,B,C` | die Ebenen eines robust-Signals von oben nach unten (sonst in Reihenfolge des Auftretens) |
+| `@100`, `@+50` | der Zeitpunkt der folgenden Anweisungen |
+| `N is Zustand`, `N is "Langer Zustand"`, `N is {-}` | ein Wechsel; `{-}` / `{hidden}` zeigen nichts |
+| `@N`, dann `0 is A`, `+100 is B` | dasselbe, pro Signal geschrieben |
+| `A -> B : Text`, `A -> B@+20 : Text` | eine Nachricht zu diesem Zeitpunkt, optional später ankommend |
+| `highlight 200 to 300 #Gold : Text` | ein schattierter Zeitraum |
+
+## Salt-Wireframes
+
+```
+@startsalt
+{+
+  Login    | "MyName   "
+  Password | "****     "
+  [X] Remember me | ^English^
+  [Cancel] | [  OK   ]
+}
+@endsalt
+```
+
+Ein Salt-Diagramm ist `@startsalt … @endsalt` oder ein `@startuml`, dessen
+erste Zeile `salt` ist.
+
+| Syntax | |
+|---|---|
+| `{ … }` | ein Raster: Zeilen pro Zeile, Zellen durch `\|` getrennt; Blöcke verschachteln sich in Zellen |
+| `{+`, `{#`, `{!`, `{-` | äußerer Rahmen; alle Linien; Spaltenlinien; Zeilenlinien |
+| `[Schaltfläche]` | eine Schaltfläche |
+| `"Textfeld   "` | ein Textfeld; Leerzeichen am Ende machen es breiter |
+| `[X] markiert`, `[] nicht markiert` | Kontrollkästchen |
+| `(X) gewählt`, `() nicht gewählt` | Optionsfelder |
+| `^Auswahl^` | eine Auswahlliste |
+| Text, `<b>fett</b>` | eine Beschriftung |
+| `.` | eine leere Zelle |
+| `..`, `==`, `~~`, `--` in eigener Zeile | Trenner: gepunktet, doppelt, gestrichelt, durchgezogen |
+| `{/ <b>Reiter 1 \| Reiter 2 }` | Reiter; der fette ist gewählt; einer pro Zeile macht sie vertikal |
+| `{* Datei \| Bearbeiten \| Ansicht }` | eine Menüleiste |
+| `{T` mit `+ Wurzel`, `++ Kind` | ein Baum |
+| `{^"Titel"` | ein Gruppenrahmen |
+| `{S` | ein Bereich mit Bildlaufleiste |
