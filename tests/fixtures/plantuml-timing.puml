@@ -1,0 +1,25 @@
+@startuml
+title Request handling
+robust "Web browser" as WB
+concise "User" as WU
+binary "Cache" as CA
+clock "Clock" as C with period 50
+WB has Idle,Waiting,Processing
+@0
+WU is Idle
+WB is Idle
+CA is low
+@100
+WU is Waiting
+WB is Processing
+WU -> WB : request
+@200
+CA is high
+@300
+WB is Waiting
+@WB
+400 is Idle
+@WU
+450 is "Reading the page"
+highlight 200 to 300 #Gold : network
+@enduml

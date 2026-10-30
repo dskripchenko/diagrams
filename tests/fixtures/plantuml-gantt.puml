@@ -1,0 +1,16 @@
+@startgantt
+title Release plan
+Project starts 2026-03-02
+saturday are closed
+sunday are closed
+-- Design --
+[Discovery] lasts 5 days
+[Discovery] is completed
+[Wireframes] starts at [Discovery]'s end and lasts 4 days
+-- Build --
+[API] as [A] lasts 2 weeks
+[A] starts at [Wireframes]'s end
+[A] is 40% completed
+then [Frontend] lasts 8 days
+[Release] happens at [Frontend]'s end
+@endgantt

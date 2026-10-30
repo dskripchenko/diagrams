@@ -10,7 +10,8 @@ import type { Direction } from '../../layout/layered/types'
 import { accessibilityStatement, type Accessibility } from '../common'
 
 export type Stroke = 'normal' | 'thick' | 'dotted' | 'invisible'
-export type EdgeEnd = 'none' | 'arrow' | 'circle' | 'cross'
+/** Line ends; the UML ones (triangle, diamonds, open arrow) come from PlantUML. */
+export type EdgeEnd = 'none' | 'arrow' | 'circle' | 'cross' | 'triangle' | 'diamond' | 'diamond-open' | 'open-arrow'
 
 export interface FlowNode {
   id: string
@@ -47,6 +48,8 @@ export interface FlowSubgraph {
   direction?: Direction
   classes: string[]
   style?: UserStyle
+  /** The frame's shape: a package, a node, a cloud… (PlantUML containers); a rectangle by default. */
+  kind?: ShapeKind
 }
 
 export interface Flowchart {

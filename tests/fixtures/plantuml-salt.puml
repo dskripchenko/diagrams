@@ -1,0 +1,19 @@
+@startsalt
+title Sign in
+{+
+  {/ <b>Account | Security | Notifications }
+  {^"Credentials"
+    Login    | "alice@example.com   "
+    Password | "********            "
+  }
+  [X] Remember me | ^English^
+  () Personal | (X) Business
+  ..
+  {T
+   + Settings
+   ++ Profile
+   ++ Billing
+  }
+  [Cancel] | [  Sign in  ]
+}
+@endsalt

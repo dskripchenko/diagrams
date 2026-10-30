@@ -16,7 +16,18 @@ import { statements, unquote, type Statement } from '../../core/scanner'
 import { parseStyle } from '../../core/style'
 import { accessibilityStatement, type Accessibility } from '../common'
 
-export type ParticipantKind = 'participant' | 'actor'
+export type ParticipantKind =
+  | 'participant'
+  | 'actor'
+  // UML robustness and storage icons (Mermaid's participant metadata, PlantUML's keywords).
+  | 'boundary'
+  | 'control'
+  | 'entity'
+  | 'database'
+  | 'collections'
+  | 'queue'
+
+export const ICON_KINDS: ReadonlySet<ParticipantKind> = new Set(['boundary', 'control', 'entity', 'database', 'collections', 'queue'])
 
 export interface Participant {
   id: string
@@ -38,7 +49,8 @@ export interface ParticipantBox {
 export type LineStyle = 'solid' | 'dotted'
 export type ArrowHead = 'none' | 'arrow' | 'open' | 'cross'
 
-export type BlockKind = 'loop' | 'alt' | 'opt' | 'par' | 'critical' | 'break' | 'rect'
+/** `group` is PlantUML's labelled block: its text is the tab. */
+export type BlockKind = 'loop' | 'alt' | 'opt' | 'par' | 'critical' | 'break' | 'rect' | 'group'
 
 export interface MessageEvent {
   kind: 'message'
@@ -96,6 +108,27 @@ export interface BlockEndEvent {
   sourceLine: number
 }
 
+/** A rule across the whole diagram with a title in the middle (PlantUML `== text ==`). */
+export interface DividerEvent {
+  kind: 'divider'
+  text: string
+  sourceLine: number
+}
+
+/** Time passes: a gap, with an optional text (PlantUML `...` / `...text...`). */
+export interface DelayEvent {
+  kind: 'delay'
+  text: string
+  sourceLine: number
+}
+
+/** Extra vertical space (PlantUML `|||` / `||45||`). */
+export interface SpaceEvent {
+  kind: 'space'
+  height: number
+  sourceLine: number
+}
+
 export interface DestroyEvent {
   kind: 'destroy'
   actor: string
@@ -110,6 +143,9 @@ export type SequenceEvent =
   | BlockSectionEvent
   | BlockEndEvent
   | DestroyEvent
+  | DividerEvent
+  | DelayEvent
+  | SpaceEvent
 
 export interface SequenceDiagram {
   type: 'sequence'
@@ -118,6 +154,8 @@ export interface SequenceDiagram {
   boxes: ParticipantBox[]
   events: SequenceEvent[]
   accessibility: Accessibility
+  /** No participants repeated at the bottom (PlantUML `hide footbox`). */
+  hideFootbox?: boolean
 }
 
 /*
@@ -407,13 +445,20 @@ class Parser {
   }
 
   private declare(rest: string, kind: ParticipantKind, created: boolean, s: Statement, offset: number): void {
-    if (/@\{/.test(rest)) {
-      throw new DiagramError(
-        'Participant metadata (@{ … }) is not supported',
-        s.line,
-        s.column + offset + rest.indexOf('@'),
-        'Use "participant A" or "actor A".',
-      )
+    const meta = /^(.*?)@\{(.*)\}\s*(.*)$/.exec(rest)
+    if (meta) {
+      // Mermaid 11: participant A@{ "type": "database" } — the type is the only key read.
+      const type = /["']?type["']?\s*:\s*["']?(\w+)["']?/.exec(meta[2]!)?.[1]?.toLowerCase()
+      if (!type || !(ICON_KINDS.has(type as ParticipantKind) || type === 'participant' || type === 'actor')) {
+        throw new DiagramError(
+          `"${meta[2]!.trim()}" is not a participant type`,
+          s.line,
+          s.column + offset + rest.indexOf('@'),
+          'participant A@{ "type": "boundary" } — boundary, control, entity, database, collections, queue, actor.',
+        )
+      }
+      kind = type as ParticipantKind
+      rest = `${meta[1]!.trim()}${meta[3] ? ` ${meta[3].trim()}` : ''}`
     }
     const m = /^(.+?)\s+as\s+(.+)$/.exec(rest)
     const id = this.id(m ? m[1]! : rest, s, offset)

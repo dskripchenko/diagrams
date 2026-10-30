@@ -1,0 +1,33 @@
+@startuml
+title Order fulfilment
+start
+:Receive order;
+if (In stock?) then (yes)
+  :Reserve items;
+elseif (Supplier has it?) then (yes)
+  :Order from
+  the supplier;
+else (no)
+  #pink:Cancel;
+  stop
+endif
+fork
+  :Charge card;
+fork again
+  :Pack;
+end fork
+while (More items?) is (yes)
+  :Scan item;
+endwhile (no)
+repeat
+  :Try delivery;
+repeat while (Failed?) is (yes) not (no)
+partition Shipping {
+  :Ship;
+  note right
+    tracking number
+    sent by email
+  end note
+}
+stop
+@enduml

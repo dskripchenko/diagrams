@@ -19,6 +19,7 @@ sequenceDiagram
 | `participant A` | ein Kasten namens `A` |
 | `participant A as Alice` | ID `A`, angezeigt als „Alice“ |
 | `actor A` | ein Strichmännchen statt eines Kastens |
+| `participant A@{ "type": "database" }` | ein Symbol statt eines Kastens: `boundary`, `control`, `entity`, `database`, `collections`, `queue` |
 | (implizit) | ein in einer Nachricht verwendeter Name wird zum Teilnehmer |
 
 Teilnehmer werden von links nach rechts in der Reihenfolge ihrer Deklaration

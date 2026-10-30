@@ -1,0 +1,14 @@
+@startuml
+object alice {
+  name = "Alice"
+  age = 30
+}
+object order
+order : id = 42
+map Settings {
+  theme => dark
+  lang => ru
+}
+alice --> order : places
+alice ..> Settings
+@enduml

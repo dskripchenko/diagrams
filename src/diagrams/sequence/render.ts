@@ -35,7 +35,72 @@ function markerFor(head: MessageGeom['head']): MarkerKind | null {
   }
 }
 
+/** The UML robustness and storage icons, drawn in the figure's space above the name. */
+function icon(a: ActorGeom): SvgElement[] {
+  const cx = a.x
+  const top = a.top
+  const cls = 'dg-actor-figure'
+  switch (a.kind) {
+    case 'boundary':
+      return [
+        el('path', { class: `${cls} dg-actor-limbs`, d: new PathBuilder().moveTo(cx - 16, top + 5).lineTo(cx - 16, top + 29).moveTo(cx - 16, top + 17).lineTo(cx - 7, top + 17).toString() }),
+        el('circle', { class: cls, cx: cx + 5, cy: top + 17, r: 12 }),
+      ]
+    case 'control':
+      return [
+        el('circle', { class: cls, cx, cy: top + 19, r: 12 }),
+        el('path', { class: `${cls} dg-actor-limbs`, d: new PathBuilder().moveTo(cx + 5, top + 3).lineTo(cx - 1, top + 7).lineTo(cx + 5, top + 11).toString() }),
+      ]
+    case 'entity':
+      return [
+        el('circle', { class: cls, cx, cy: top + 15, r: 12 }),
+        el('line', { class: cls, x1: cx - 12, y1: top + 30, x2: cx + 12, y2: top + 30 }),
+      ]
+    case 'database': {
+      const l = cx - 14
+      const w = 28
+      const t = top + 2
+      const h = 30
+      const ry = 5
+      return [
+        el('path', {
+          class: cls,
+          d: new PathBuilder().moveTo(l, t + ry).arcTo(w / 2, ry, 0, false, false, l + w, t + ry).lineTo(l + w, t + h - ry).arcTo(w / 2, ry, 0, false, true, l, t + h - ry).close().toString(),
+        }),
+        el('path', { class: `${cls} dg-actor-limbs`, d: new PathBuilder().moveTo(l, t + ry).arcTo(w / 2, ry, 0, false, true, l + w, t + ry).toString() }),
+      ]
+    }
+    case 'collections':
+      return [
+        el('rect', { class: cls, x: cx - 10, y: top + 4, width: 26, height: 20 }),
+        el('rect', { class: cls, x: cx - 16, y: top + 10, width: 26, height: 20 }),
+      ]
+    case 'queue': {
+      const l = cx - 20
+      const w = 40
+      const t = top + 6
+      const h = 22
+      const rx = 5
+      return [
+        el('path', {
+          class: cls,
+          d: new PathBuilder().moveTo(l + rx, t).lineTo(l + w - rx, t).arcTo(rx, h / 2, 0, false, true, l + w - rx, t + h).lineTo(l + rx, t + h).arcTo(rx, h / 2, 0, false, true, l + rx, t).close().toString(),
+        }),
+        el('path', { class: `${cls} dg-actor-limbs`, d: new PathBuilder().moveTo(l + w - rx, t).arcTo(rx, h / 2, 0, false, false, l + w - rx, t + h).toString() }),
+      ]
+    }
+    default:
+      return []
+  }
+}
+
 function actor(a: ActorGeom): SvgElement {
+  if (a.kind !== 'actor' && a.kind !== 'participant') {
+    return el('g', { class: `dg-actor dg-actor-${a.kind}` }, [
+      ...icon(a),
+      renderLabel(a.label, a.x, a.top + FIGURE_HEIGHT + 4 + a.label.height / 2, { className: 'dg-actor-label' }),
+    ])
+  }
   if (a.kind === 'actor') {
     // A stick figure on top, the name under it.
     const cx = a.x
@@ -245,6 +310,33 @@ export function renderSequenceLayout(
     ),
     el('g', { class: 'dg-actors' }, layout.actors.map(actor)),
   ]
+  // Only when used: diagrams without them render byte for byte as before.
+  if (layout.dividers.length > 0) {
+    content.push(el(
+      'g',
+      { class: 'dg-dividers' },
+      layout.dividers.map((d) => {
+        const mid = (layout.span.left + layout.span.right) / 2
+        const w = (d.label?.width ?? 0) + 20
+        const h = (d.label?.height ?? 0) + 8
+        return el('g', { class: 'dg-divider' }, [
+          el('line', { class: 'dg-divider-line', x1: layout.span.left, y1: d.y - 1.5, x2: layout.span.right, y2: d.y - 1.5 }),
+          el('line', { class: 'dg-divider-line', x1: layout.span.left, y1: d.y + 1.5, x2: layout.span.right, y2: d.y + 1.5 }),
+          d.label ? el('rect', { class: 'dg-divider-box', x: mid - w / 2, y: d.y - h / 2, width: w, height: h, rx: 3 }) : null,
+          d.label ? renderLabel(d.label, mid, d.y, { className: 'dg-divider-text' }) : null,
+        ])
+      }),
+    ))
+  }
+  if (layout.delays.some((d) => d.label)) {
+    content.push(el(
+      'g',
+      { class: 'dg-delays' },
+      layout.delays.filter((d) => d.label).map((d) =>
+        renderLabel(d.label!, (layout.span.left + layout.span.right) / 2, d.y, { className: 'dg-delay-text' }),
+      ),
+    ))
+  }
 
   const body: SvgElement[] = []
   if (layout.title) {
@@ -277,6 +369,14 @@ export function renderSequenceLayout(
     `${r} .dg-group-box{fill:none;stroke:${v('--dg-cluster-stroke')};stroke-width:1px}`,
     `${r} .dg-group-label{fill:${v('--dg-cluster-text')};font-weight:600}`,
     `${r} .dg-destroy{fill:none;stroke:${v('--dg-line')};stroke-width:2px}`,
+    ...(layout.dividers.length > 0
+      ? [
+          `${r} .dg-divider-line{stroke:${v('--dg-block-stroke')};stroke-width:1px}`,
+          `${r} .dg-divider-box{fill:${v('--dg-block-label-fill')};stroke:${v('--dg-block-stroke')};stroke-width:1px}`,
+          `${r} .dg-divider-text{fill:${v('--dg-text')};font-size:13px;font-weight:bold}`,
+        ]
+      : []),
+    ...(layout.delays.some((d) => d.label) ? [`${r} .dg-delay-text{fill:${v('--dg-text-muted')};font-size:13px;font-style:italic}`] : []),
   ].join('')
 
   return documentSvg({

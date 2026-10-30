@@ -224,3 +224,14 @@ describe('sequence: rendering', () => {
     for (const id of used) expect(svg).toContain(`id="${id}"`)
   })
 })
+
+describe('participant types (Mermaid metadata)', () => {
+  it('reads @{ "type": … } into the icon kinds and refuses unknown types', () => {
+    const d = parse('sequenceDiagram\n  participant D@{ "type": "database" }\n  participant Q@{ "type" : "queue" } as Bus\n  D->>Q: hi') as { participants: { id: string; kind: string; label: string }[] }
+    expect(d.participants.map((p) => [p.id, p.kind, p.label])).toEqual([
+      ['D', 'database', 'D'],
+      ['Q', 'queue', 'Bus'],
+    ])
+    expect(() => parse('sequenceDiagram\n  participant X@{ "type": "rocket" }')).toThrow(/not a participant type/)
+  })
+})
