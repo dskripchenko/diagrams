@@ -1,0 +1,20 @@
+Table users as U {
+  id integer [pk, increment]
+  email varchar [unique, not null, note: 'login']
+  country_code char(2) [ref: > countries.code]
+}
+Table posts {
+  id integer [pk]
+  user_id integer
+  title varchar
+  status post_status
+}
+Table countries {
+  code char(2) [pk]
+  name varchar
+}
+Enum post_status {
+  draft
+  published
+}
+Ref: posts.user_id > U.id

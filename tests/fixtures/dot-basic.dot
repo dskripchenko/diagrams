@@ -1,0 +1,13 @@
+digraph deploy {
+  rankdir=LR
+  label="Release pipeline"
+  node [shape=box, style=rounded]
+  subgraph cluster_ci {
+    label="CI"
+    build; test
+  }
+  build -> test -> deploy [label="green", color=green]
+  db [shape=cylinder, label="Orders DB"]
+  deploy -> db [style=dashed]
+  test -> build [label="retry", style=dotted, constraint=false]
+}

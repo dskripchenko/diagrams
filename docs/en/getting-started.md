@@ -98,8 +98,11 @@ try {
 }
 ```
 
-The syntax supported is a declared subset of Mermaid's, listed per type in
-this documentation. Anything outside it is an error with a position — never
+The syntaxes supported — Mermaid, [PlantUML](plantuml.md),
+[Graphviz DOT](dot.md), [D2](d2.md), [DBML](dbml.md),
+[Structurizr DSL](structurizr.md) and [Wardley maps](wardley.md) — are
+declared subsets, listed per type in this documentation. The syntax is
+recognised from how a source starts; `render(source, { syntax })` names it. Anything outside it is an error with a position — never
 a picture that silently leaves something out.
 
 ## Other functions

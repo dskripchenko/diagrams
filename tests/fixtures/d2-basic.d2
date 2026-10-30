@@ -1,0 +1,11 @@
+direction: right
+users: Users { shape: person }
+cloud: AWS {
+  api: API
+  db: Database { shape: cylinder }
+  queue: Events { shape: queue }
+  api -> db: SQL
+  api -> queue
+}
+users -> cloud.api: HTTPS
+cloud.db.style.fill: "#fde68a"

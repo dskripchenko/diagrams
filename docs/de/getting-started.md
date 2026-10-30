@@ -104,7 +104,11 @@ try {
 }
 ```
 
-Unterstützt wird eine festgelegte Teilmenge der Mermaid-Syntax, die in dieser
+Unterstützt werden festgelegte Teilmengen der Syntaxen Mermaid,
+[PlantUML](plantuml.md), [Graphviz DOT](dot.md), [D2](d2.md),
+[DBML](dbml.md), [Structurizr DSL](structurizr.md) und
+[Wardley-Maps](wardley.md) (die Syntax wird am Anfang der Quelle erkannt;
+ausdrücklich mit `render(source, { syntax })`), die in dieser
 Dokumentation pro Typ aufgeführt ist. Alles außerhalb davon ist ein Fehler
 mit Position — nie ein Bild, in dem stillschweigend etwas fehlt.
 

@@ -13,8 +13,8 @@ const out = join(root, 'tests/browser/output')
 mkdirSync(out, { recursive: true })
 const filter = process.argv[2] ?? ''
 const fixtures = readdirSync(join(root, 'tests/fixtures'))
-  .filter((f) => /\.(mmd|puml)$/.test(f) && f.includes(filter))
-  .map((f) => ({ name: f.replace(/\.(mmd|puml)$/, ''), source: readFileSync(join(root, 'tests/fixtures', f), 'utf8') }))
+  .filter((f) => /\.(mmd|puml|dot|d2|dbml|dsl|owm)$/.test(f) && f.includes(filter))
+  .map((f) => ({ name: f.replace(/\.(mmd|puml|dot|d2|dbml|dsl|owm)$/, ''), source: readFileSync(join(root, 'tests/fixtures', f), 'utf8') }))
 
 const DARK = `
   .dark { background: #0f172a; color-scheme: dark;

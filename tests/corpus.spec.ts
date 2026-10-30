@@ -6,7 +6,7 @@ import { approximateMeasurer, detect, render } from '../src'
  * SVG. A changed snapshot is a decision: look at the picture, then update
  * with `vitest -u`.
  */
-const fixtures = import.meta.glob('./fixtures/*.{mmd,puml}', { query: '?raw', import: 'default', eager: true }) as Record<
+const fixtures = import.meta.glob('./fixtures/*.{mmd,puml,dot,d2,dbml,dsl,owm}', { query: '?raw', import: 'default', eager: true }) as Record<
   string,
   string
 >
@@ -15,7 +15,7 @@ const opts = { measureText: approximateMeasurer }
 
 describe('corpus', () => {
   for (const [path, source] of Object.entries(fixtures)) {
-    const name = path.replace('./fixtures/', '').replace(/\.(mmd|puml)$/, '')
+    const name = path.replace('./fixtures/', '').replace(/\.(mmd|puml|dot|d2|dbml|dsl|owm)$/, '')
     it(name, async () => {
       expect(detect(source)).not.toBeNull()
       const first = render(source, opts)

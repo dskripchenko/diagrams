@@ -95,7 +95,7 @@ try {
 }
 ```
 
-支持的语法是 Mermaid 语法的一个明确声明的子集，本文档按类型逐一列出。超出范围的内容
+支持的语法是 Mermaid、[PlantUML](plantuml.md)、[Graphviz DOT](dot.md)、[D2](d2.md)、[DBML](dbml.md)、[Structurizr DSL](structurizr.md) 和[沃德利地图](wardley.md)各自明确声明的子集（根据源码开头识别语法；也可用 `render(source, { syntax })` 指定），本文档按类型逐一列出。超出范围的内容
 都会报出带位置的错误——绝不会生成一张悄悄遗漏了内容的图片。
 
 ## 其他函数
