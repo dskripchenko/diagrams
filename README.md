@@ -32,7 +32,8 @@ return 201
 (`C4Context`, `C4Container`, `C4Component`, `C4Dynamic`, `C4Deployment`),
 `pie`, `gantt`, `timeline`, `xychart-beta`, `mindmap`; PlantUML sequence,
 use case, component, deployment, activity (with swimlanes), class, object,
-state and ER diagrams.
+state, ER, C4 (C4-PlantUML) and timing diagrams, mind maps, WBS, Gantt
+charts and Salt wireframes.
 
 ## Why another renderer
 

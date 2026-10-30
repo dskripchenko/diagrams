@@ -45,7 +45,7 @@ describe('PlantUML: the frame and detection', () => {
   it('explains what it cannot do', () => {
     expect(error('@startuml\nA -> B').message).toMatch(/@enduml/)
     expect(error(uml('!include common.puml\nA -> B')).hint).toMatch(/no files/)
-    expect(error('@startmindmap\n* a\n@endmindmap').message).toMatch(/not supported yet/)
+    expect(error('@startjson\n{}\n@endjson').message).toMatch(/not supported yet/)
     const e = error(uml('A -> B\nwhat is this'))
     expect(e).toBeInstanceOf(DiagramError)
     expect(e.line).toBe(3)

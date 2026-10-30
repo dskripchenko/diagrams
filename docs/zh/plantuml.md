@@ -15,7 +15,7 @@ return rows
 
 PlantUML 没有表示图类型的关键字：与 PlantUML 本身一样，类型根据语句内容识别。`:动作;` 行、`start`、`if (…)` —— 活动图；`[组件]`、`(用例)`、`node`、`package` 及其他元素关键字 —— 用例图、组件图和部署图；参与者与消息 —— 时序图。`detect()` 对时序图返回 `sequence`，对其他图返回 `flowchart`（即绘制它们所用的模型）。
 
-支持：**时序图**、**用例图**、**组件图**、**部署图**、**活动图**、**类图**、**对象图**、**状态图**和 **ER 图**（Information Engineering 表示法）。C4、思维导图、甘特图、时间图和 Salt 将在后续版本中提供；遇到这类源码时会抛出说明原因的错误。`detect()` 返回绘制该图所用的模型：`sequence`、`flowchart`（用例图、组件图、部署图、活动图）、`class`（类图、对象图）、`state`、`er`。
+`@startuml` 中支持：**时序图**、**用例图**、**组件图**、**部署图**、**活动图**、**类图**、**对象图**、**状态图**、**ER 图**（Information Engineering 表示法）、**C4**（C4-PlantUML）、**时间图**和 **Salt** 线框图；另外支持**思维导图**（`@startmindmap`）、**工作分解结构**（`@startwbs`）、**甘特图**（`@startgantt`）和 **Salt**（`@startsalt`）。其他 `@start…`（JSON、YAML 等）会抛出说明原因的错误。`detect()` 返回绘制该图所用的模型：`sequence`、`flowchart`（用例图、组件图、部署图、活动图）、`class`（类图、对象图）、`state`、`er`、`c4`、`mindmap`（思维导图、WBS）、`gantt`、`timing`、`salt`。
 
 ## 所有图通用
 
@@ -200,3 +200,158 @@ Customer ||--o{ O : places
 | `A \|\|--o{ B : 标签` | 带鸦爪端点的关系：`\|\|` 一，`\|o`/`o\|` 零或一，`}\|`/`\|{` 一或多，`}o`/`o{` 零或多；`..` 虚线 |
 
 当图中有鸦爪连线，或有带主体的实体且没有类关键字时，按 ER 图处理。
+
+## C4（C4-PlantUML）
+
+```
+@startuml
+!include <C4/C4_Container>
+Person(user, "Customer")
+System_Boundary(shop, "Shop") {
+  Container(web, "Web app", "React")
+  ContainerDb(db, "Orders", "PostgreSQL")
+}
+Rel(user, web, "Uses", "HTTPS")
+Rel(web, db, "Reads/writes")
+SHOW_LEGEND()
+@enduml
+```
+
+宏与 [C4](c4.md) 相同：元素、边界、`Rel`、`BiRel`、`Rel_U/D/L/R`、`Rel_Back`、`UpdateElementStyle`、布局宏。
+
+| 语法 | |
+|---|---|
+| `!include <C4/C4_Container>`、`!include https://…/C4_Container.puml` | 层级：`C4_Context`、`C4_Container`、`C4_Component`、`C4_Dynamic`、`C4_Deployment`；以包含的最深层级为准。不会下载库本身。其他任何 `!include` 仍然报错 |
+| `SHOW_LEGEND()`、`LAYOUT_WITH_LEGEND()`、`LAYOUT_AS_SKETCH()`、`HIDE_*`、`Add…Tag`、`Update…Tag`、`Lay_*`、`SetPropertyHeader`、`AddProperty` | 跳过：仅影响外观 |
+| `Rel_Neighbor`、`BiRel_Neighbor`、`Rel_Back_Neighbor` | 普通关系 |
+
+使用 C4 宏（`Person(…)`、`Container(…)`、`Rel(…)` 等）的图即使没有 include 也按 C4 处理，层级为 Context。
+
+## 思维导图和工作分解结构
+
+```
+@startmindmap
+* Release
+** Backend
+***_ 无框节点
+** Frontend
+***:跨两行的
+节点;
+left side
+** Docs
+@endmindmap
+```
+
+| 语法 | |
+|---|---|
+| `*`、`**`、…（或 OrgMode 风格的 `+` / `-`，或 `#`） | 该深度的节点；只有一个根 |
+| `*_ 文本` | 无框节点 |
+| `*[#Orange] 文本` | 颜色，被接受 |
+| `**:第一行` … `最后一行;` | 多行节点 |
+| `left side`、`right side` | 被接受；分支由布局自行放置 |
+
+`@startwbs` 读取同样的树，并绘制为思维导图。
+
+## 甘特图
+
+```
+@startgantt
+Project starts 2026-03-02
+saturday are closed
+sunday are closed
+-- Design --
+[Discovery] lasts 5 days
+[Wireframes] starts at [Discovery]'s end and lasts 4 days
+-- Build --
+[API] as [A] lasts 2 weeks
+[A] starts at [Wireframes]'s end
+[A] is 40% completed
+then [Frontend] lasts 8 days
+[Release] happens at [Frontend]'s end
+@endgantt
+```
+
+| 语法 | |
+|---|---|
+| `Project starts 2026-03-02` | 没有自身开始时间的任务从此开始 |
+| `[任务] lasts 5 days`、`requires 2 weeks` | 工期 |
+| `[任务] starts 2026-03-10`、`starts at [X]'s end`、`starts at [X]'s start` | 开始 |
+| `[任务] ends 2026-03-20`、`ends at [X]'s start` | 结束 |
+| `then [任务] …` | 在上一个任务结束时开始 |
+| `[A] -> [B]` | B 在 A 结束时开始 |
+| `[任务] as [T]` | 别名 |
+| `[M] happens at [X]'s end`、`happens 2026-03-30` | 里程碑 |
+| `[任务] is 40% completed`、`is completed` | 进行中（百分比显示在名称中）或已完成 |
+| `-- 分组 --` | 分组 |
+| `saturday are closed`、`2026-03-09 is closed` | 不计入的日期 |
+| 用 `and` 连接的子句 | `[A] starts at [B]'s end and lasts 3 days` |
+| 颜色、资源（`on {Alice}`）、`printscale`、`language`、`today` | 被接受 |
+
+不支持偏移（`starts 2 days after [X]'s end`）——会有错误提示。任务按依赖顺序输出，每个任务都排在其所依赖的任务之后。
+
+## 时间图
+
+```
+@startuml
+robust "Web browser" as WB
+concise "User" as WU
+clock "Clock" as C with period 50
+WB has Idle,Waiting,Processing
+@0
+WU is Idle
+WB is Idle
+@100
+WU is Waiting
+WB is Processing
+WU -> WB : request
+@300
+WB is Waiting
+highlight 200 to 300 #Gold : network
+@enduml
+```
+
+| 语法 | |
+|---|---|
+| `robust "名称" as N` | 阶梯式的电平 |
+| `concise "名称" as N` | 状态显示为带名称的条带 |
+| `binary "名称" as N` | 高或低 |
+| `clock "名称" as N with period 50 [pulse 15] [offset 10]` | 方波 |
+| `N has A,B,C` | robust 信号的电平，自上而下（否则按出现顺序） |
+| `@100`、`@+50` | 其后语句发生的时刻 |
+| `N is 状态`、`N is "长状态"`、`N is {-}` | 状态变化；`{-}` / `{hidden}` 不显示 |
+| `@N` 之后 `0 is A`、`+100 is B` | 同上，按信号书写 |
+| `A -> B : 文本`、`A -> B@+20 : 文本` | 该时刻的消息，可稍后到达 |
+| `highlight 200 to 300 #Gold : 文本` | 高亮的时间段 |
+
+## Salt 线框图
+
+```
+@startsalt
+{+
+  Login    | "MyName   "
+  Password | "****     "
+  [X] Remember me | ^English^
+  [Cancel] | [  OK   ]
+}
+@endsalt
+```
+
+Salt 图是 `@startsalt … @endsalt`，或第一行为 `salt` 的 `@startuml`。
+
+| 语法 | |
+|---|---|
+| `{ … }` | 网格：每行一行，单元格用 `\|` 分隔；块可嵌套在单元格中 |
+| `{+`、`{#`、`{!`、`{-` | 外框；全部线条；列线；行线 |
+| `[按钮]` | 按钮 |
+| `"文本框   "` | 文本框；末尾空格使其更宽 |
+| `[X] 已选`、`[] 未选` | 复选框 |
+| `(X) 选中`、`() 未选中` | 单选按钮 |
+| `^下拉列表^` | 下拉列表 |
+| 文本、`<b>粗体</b>` | 标签 |
+| `.` | 空单元格 |
+| 单独一行的 `..`、`==`、`~~`、`--` | 分隔线：点线、双线、虚线、实线 |
+| `{/ <b>标签页 1 \| 标签页 2 }` | 标签页；粗体为选中项；每行一个则为垂直标签页 |
+| `{* 文件 \| 编辑 \| 视图 }` | 菜单栏 |
+| `{T` 配合 `+ 根`、`++ 子` | 树 |
+| `{^"标题"` | 分组框 |
+| `{S` | 滚动区域 |

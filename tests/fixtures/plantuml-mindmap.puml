@@ -1,0 +1,14 @@
+@startmindmap
+* Release 2.0
+** Backend
+*** API
+***_ rate limits
+*** Workers
+**[#Orange] Frontend
+***:New checkout
+flow;
+left side
+-- Docs
+--- Guides
+--- API reference
+@endmindmap

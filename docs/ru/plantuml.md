@@ -21,13 +21,16 @@ return rows
 deployment; участники и сообщения — sequence. `detect()` возвращает
 `sequence`, а для остальных — `flowchart` (моделью, которой они рисуются).
 
-Поддерживаются диаграммы **sequence**, **use case**, **component**,
-**deployment**, **activity**, **class**, **object**, **state** и **ER**
-(нотация Information Engineering). C4, mind map, Gantt, timing и Salt
-появятся в следующих выпусках; на такой исходник рендерер отвечает ошибкой
-с объяснением. `detect()` возвращает модель, которой рисуется диаграмма:
-`sequence`, `flowchart` (use case, component, deployment, activity),
-`class` (class, object), `state`, `er`.
+Поддерживаются в `@startuml` диаграммы **sequence**, **use case**,
+**component**, **deployment**, **activity**, **class**, **object**,
+**state**, **ER** (нотация Information Engineering), **C4** (C4-PlantUML),
+**timing** и макеты **Salt**; а также **mind map** (`@startmindmap`), **WBS**
+(`@startwbs`), **Gantt** (`@startgantt`) и **Salt** (`@startsalt`). На
+другие `@start…` (JSON, YAML, …) рендерер отвечает ошибкой с объяснением.
+`detect()` возвращает модель, которой рисуется диаграмма: `sequence`,
+`flowchart` (use case, component, deployment, activity), `class` (class,
+object), `state`, `er`, `c4`, `mindmap` (mind map, WBS), `gantt`, `timing`,
+`salt`.
 
 ## Общее для всех диаграмм
 
@@ -216,3 +219,163 @@ Customer ||--o{ O : places
 
 Диаграмма считается ER, если в ней есть связи с «вороньими лапками» или
 сущности с телом и нет ключевых слов классов.
+
+## C4 (C4-PlantUML)
+
+```
+@startuml
+!include <C4/C4_Container>
+Person(user, "Customer")
+System_Boundary(shop, "Shop") {
+  Container(web, "Web app", "React")
+  ContainerDb(db, "Orders", "PostgreSQL")
+}
+Rel(user, web, "Uses", "HTTPS")
+Rel(web, db, "Reads/writes")
+SHOW_LEGEND()
+@enduml
+```
+
+Макросы — те же, что у [C4](c4.md): элементы, границы, `Rel`, `BiRel`,
+`Rel_U/D/L/R`, `Rel_Back`, `UpdateElementStyle`, макросы раскладки.
+
+| Синтаксис | |
+|---|---|
+| `!include <C4/C4_Container>`, `!include https://…/C4_Container.puml` | уровень: `C4_Context`, `C4_Container`, `C4_Component`, `C4_Dynamic`, `C4_Deployment`; считается самый глубокий из подключённых. Саму библиотеку рендерер не скачивает. Любой другой `!include` по-прежнему ошибка |
+| `SHOW_LEGEND()`, `LAYOUT_WITH_LEGEND()`, `LAYOUT_AS_SKETCH()`, `HIDE_*`, `Add…Tag`, `Update…Tag`, `Lay_*`, `SetPropertyHeader`, `AddProperty` | пропускаются: это только оформление |
+| `Rel_Neighbor`, `BiRel_Neighbor`, `Rel_Back_Neighbor` | обычные связи |
+
+Диаграмма с макросами C4 (`Person(…)`, `Container(…)`, `Rel(…)`…) считается
+C4 и без `!include`; уровень тогда — Context.
+
+## Mind map и WBS
+
+```
+@startmindmap
+* Release
+** Backend
+***_ узел без рамки
+** Frontend
+***:узел в
+две строки;
+left side
+** Docs
+@endmindmap
+```
+
+| Синтаксис | |
+|---|---|
+| `*`, `**`, … (или `+` / `-` в стиле OrgMode, или `#`) | узел на этой глубине; корень один |
+| `*_ текст` | узел без рамки |
+| `*[#Orange] текст` | цвет, принимается |
+| `**:первая строка` … `последняя;` | узел в несколько строк |
+| `left side`, `right side` | принимаются; ветви раскладка расставляет сама |
+
+`@startwbs` читает такое же дерево и рисует его как mind map.
+
+## Gantt
+
+```
+@startgantt
+Project starts 2026-03-02
+saturday are closed
+sunday are closed
+-- Design --
+[Discovery] lasts 5 days
+[Wireframes] starts at [Discovery]'s end and lasts 4 days
+-- Build --
+[API] as [A] lasts 2 weeks
+[A] starts at [Wireframes]'s end
+[A] is 40% completed
+then [Frontend] lasts 8 days
+[Release] happens at [Frontend]'s end
+@endgantt
+```
+
+| Синтаксис | |
+|---|---|
+| `Project starts 2026-03-02` | начало задач, у которых нет своего |
+| `[Задача] lasts 5 days`, `requires 2 weeks` | длительность |
+| `[Задача] starts 2026-03-10`, `starts at [X]'s end`, `starts at [X]'s start` | начало |
+| `[Задача] ends 2026-03-20`, `ends at [X]'s start` | окончание |
+| `then [Задача] …` | начинается по окончании предыдущей |
+| `[A] -> [B]` | B начинается по окончании A |
+| `[Задача] as [T]` | псевдоним |
+| `[M] happens at [X]'s end`, `happens 2026-03-30` | веха |
+| `[Задача] is 40% completed`, `is completed` | в работе (процент в названии) или выполнена |
+| `-- Раздел --` | раздел |
+| `saturday are closed`, `2026-03-09 is closed` | нерабочие дни |
+| условия через `and` | `[A] starts at [B]'s end and lasts 3 days` |
+| цвета, ресурсы (`on {Alice}`), `printscale`, `language`, `today` | принимаются |
+
+Не поддерживаются смещения (`starts 2 days after [X]'s end`) — об этом
+говорит ошибка. Задачи выводятся в порядке, где каждая идёт после тех, от
+которых зависит.
+
+## Timing
+
+```
+@startuml
+robust "Web browser" as WB
+concise "User" as WU
+clock "Clock" as C with period 50
+WB has Idle,Waiting,Processing
+@0
+WU is Idle
+WB is Idle
+@100
+WU is Waiting
+WB is Processing
+WU -> WB : request
+@300
+WB is Waiting
+highlight 200 to 300 #Gold : network
+@enduml
+```
+
+| Синтаксис | |
+|---|---|
+| `robust "Имя" as N` | уровни, ступеньками |
+| `concise "Имя" as N` | состояние полосой с его названием |
+| `binary "Имя" as N` | высокий или низкий уровень |
+| `clock "Имя" as N with period 50 [pulse 15] [offset 10]` | меандр |
+| `N has A,B,C` | уровни robust-сигнала сверху вниз (иначе — в порядке появления) |
+| `@100`, `@+50` | момент, к которому относятся следующие строки |
+| `N is Состояние`, `N is "Длинное"`, `N is {-}` | смена состояния; `{-}` / `{hidden}` — пусто |
+| `@N`, затем `0 is A`, `+100 is B` | то же, записанное по сигналу |
+| `A -> B : текст`, `A -> B@+20 : текст` | сообщение в этот момент, можно с задержкой прихода |
+| `highlight 200 to 300 #Gold : текст` | подсвеченный интервал |
+
+## Макеты Salt
+
+```
+@startsalt
+{+
+  Login    | "MyName   "
+  Password | "****     "
+  [X] Remember me | ^English^
+  [Cancel] | [  OK   ]
+}
+@endsalt
+```
+
+Макет Salt — это `@startsalt … @endsalt` или `@startuml`, первая строка
+которого `salt`.
+
+| Синтаксис | |
+|---|---|
+| `{ … }` | сетка: строки — строками, ячейки через `\|`; блоки вкладываются в ячейки |
+| `{+`, `{#`, `{!`, `{-` | внешняя рамка; все линии; линии между столбцами; между строками |
+| `[Кнопка]` | кнопка |
+| `"поле ввода   "` | поле ввода; пробелы в конце делают его шире |
+| `[X] отмечено`, `[] не отмечено` | флажки |
+| `(X) выбрано`, `() не выбрано` | переключатели |
+| `^список^` | выпадающий список |
+| текст, `<b>жирный</b>` | надпись |
+| `.` | пустая ячейка |
+| `..`, `==`, `~~`, `--` отдельной строкой | разделители: точки, двойная, штрих, сплошная |
+| `{/ <b>Вкладка 1 \| Вкладка 2 }` | вкладки; выделенная — жирная; по одной в строке — вертикальные |
+| `{* Файл \| Правка \| Вид }` | строка меню |
+| `{T` и `+ корень`, `++ потомок` | дерево |
+| `{^"Заголовок"` | групповая рамка |
+| `{S` | область с прокруткой |

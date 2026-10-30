@@ -22,6 +22,8 @@ import { parseMindmap, renderMindmap } from './diagrams/mindmap'
 import { parseEr, renderEr } from './diagrams/er'
 import { parseClass, renderClass } from './diagrams/class'
 import { parseC4, renderC4 } from './diagrams/c4'
+import { renderSalt } from './diagrams/salt'
+import { renderTiming } from './diagrams/timing'
 
 export { DiagramError } from './core/errors'
 export type { RenderOptions, RenderResult, Syntax } from './core/document'
@@ -43,6 +45,9 @@ export type DiagramType =
   | 'er'
   | 'class'
   | 'c4'
+  // Drawn from PlantUML only.
+  | 'timing'
+  | 'salt'
 
 interface DiagramModule {
   parse(source: string): unknown
@@ -68,6 +73,12 @@ const MODULES: Record<DiagramType, DiagramModule> = {
   er: { parse: parseEr, render: renderEr as DiagramModule['render'] },
   class: { parse: parseClass, render: renderClass as DiagramModule['render'] },
   c4: { parse: parseC4, render: renderC4 as DiagramModule['render'] },
+  timing: { parse: () => plantUmlOnly('timing'), render: renderTiming as DiagramModule['render'] },
+  salt: { parse: () => plantUmlOnly('salt'), render: renderSalt as DiagramModule['render'] },
+}
+
+function plantUmlOnly(type: string): never {
+  throw new DiagramError(`${type} diagrams are written in PlantUML`, 0, 0, 'Start the source with @startuml.')
 }
 
 const KEYWORDS: Record<string, DiagramType> = {

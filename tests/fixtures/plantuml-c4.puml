@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Shop containers
+Person(user, "Customer", "Buys things")
+System_Boundary(shop, "Shop") {
+  Container(web, "Web app", "React", "The storefront")
+  ContainerDb(db, "Orders DB", "PostgreSQL")
+}
+System_Ext(psp, "Payment provider")
+Rel(user, web, "Uses", "HTTPS")
+Rel_Neighbor(web, db, "Reads/writes")
+Rel_R(web, psp, "Charges")
+SHOW_LEGEND()
+@enduml
