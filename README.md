@@ -31,7 +31,8 @@ return 201
 `sequenceDiagram`, `stateDiagram-v2`, `erDiagram`, `classDiagram`, C4
 (`C4Context`, `C4Container`, `C4Component`, `C4Dynamic`, `C4Deployment`),
 `pie`, `gantt`, `timeline`, `xychart-beta`, `mindmap`; PlantUML sequence,
-use case, component, deployment and activity diagrams.
+use case, component, deployment, activity (with swimlanes), class, object,
+state and ER diagrams.
 
 ## Why another renderer
 

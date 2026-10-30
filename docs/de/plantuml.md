@@ -22,10 +22,13 @@ Verteilung; Teilnehmer und Nachrichten — Sequenz. `detect()` meldet
 `sequence`, für die anderen `flowchart` (das Modell, mit dem sie gezeichnet
 werden).
 
-In diesem Release unterstützt: **Sequenz-**, **Use-Case-**, **Komponenten-**,
-**Verteilungs-** und **Aktivitätsdiagramme**. Klasse, Objekt, Zustand, ER,
-C4, Mindmap, Gantt, Timing und Salt folgen in späteren Releases; eine
-solche Quelle löst einen erklärenden Fehler aus.
+Unterstützt: **Sequenz-**, **Use-Case-**, **Komponenten-**,
+**Verteilungs-**, **Aktivitäts-**, **Klassen-**, **Objekt-**, **Zustands-**
+und **ER-Diagramme** (Information-Engineering-Notation). C4, Mindmap,
+Gantt, Timing und Salt folgen in späteren Releases; eine solche Quelle löst
+einen erklärenden Fehler aus. `detect()` meldet das Modell, mit dem ein
+Diagramm gezeichnet wird: `sequence`, `flowchart` (Use Case, Komponente,
+Verteilung, Aktivität), `class` (Klasse, Objekt), `state`, `er`.
 
 ## Gemeinsam für alle Diagramme
 
@@ -123,6 +126,94 @@ stop
 | `partition Name {` … `}`, `group Name` … `end group` | ein Rahmen um Aktionen |
 | `-> Text;`, `-[#red,dashed]->` | Beschriftung und Stil des nächsten Pfeils |
 | `note left: Text`, `note right` … `end note` | eine Notiz neben der letzten Aktion |
+| `|Bahn|`, `|#Farbe|Bahn|` | Swimlanes: die Aktionen danach, bis zur nächsten Bahn, werden unter dem Namen der Bahn eingerahmt |
 
-Noch nicht unterstützt: Swimlanes (`|Bahn|`) — vorerst `partition`
-verwenden — und die alte Syntax mit `(*)`.
+Swimlanes werden als beschriftete Rahmen um ihre Aktionen gezeichnet, nicht
+als Spalten über die ganze Höhe. Nicht unterstützt: die alte Syntax mit `(*)`.
+
+## Klassen- und Objektdiagramme
+
+```
+@startuml
+package shop {
+  abstract class Shape {
+    {abstract} +area() : double
+    -name : String
+  }
+  class Circle extends Shape
+  interface Drawable
+}
+Circle ..|> Drawable
+Shape "1" *-- "many" Point : vertices
+@enduml
+```
+
+| Syntax | |
+|---|---|
+| `class`, `abstract class`, `abstract`, `interface`, `enum`, `annotation`, `entity`, `struct`, `record`, `exception`, `protocol`, `metaclass` | eine Klasse; alle außer `class` werden als ihr Stereotyp gezeigt |
+| `class "Langer Name" as L`, `class Box<T>`, `<<Stereotyp>>`, `#Farbe` | angezeigter Name, Generics, Stereotypen; Farben werden akzeptiert |
+| `class B extends A implements I, J` | Vererbung und Realisierung |
+| `class A {` … `}` | Member: `+feld : Typ`, `-methode(arg : T) : R`, `{static}`, `{abstract}`, `{field}`, `{method}`; Trenner `--`, `..`, `==`, `__`; Enum-Werte einer pro Zeile |
+| `A : +member` | ein außerhalb der Klasse deklarierter Member |
+| `A <\|-- B`, `*--`, `o--`, `-->`, `..>`, `..\|>`, `--`, `..` | Beziehungen; Richtungswörter (`-up->`) und Stile werden akzeptiert |
+| `A "1" *-- "many" B : Beschriftung >` | Multiplizitäten und eine Beschriftung (ein Lesepfeil am Ende entfällt) |
+| `package P {` … `}`, `namespace P {` … `}` | ein Rahmen um seine Klassen; verschachtelte Pakete heißen nach ihrem Pfad (`app.core`) |
+| `note right of A : Text`, `note "Text" as N` mit `N .. A`, `note "Text"` | Notizen an einer Klasse, verbunden oder frei |
+| `object o`, `o : feld = wert`, `object o { … }`, `map M { schlüssel => wert }` | Objektdiagramme: Objekte und Maps als Kästen mit ihren Werten |
+| `hide empty members`, `hide circle`, `show …`, `remove …` | akzeptiert und ignoriert |
+
+## Zustandsdiagramme
+
+```
+@startuml
+[*] --> Idle
+state Working {
+  [*] --> Busy
+  --
+  [*] --> Logging
+}
+state Check <<choice>>
+Idle --> Working : start
+Working --> Check
+Check --> [*]
+@enduml
+```
+
+| Syntax | |
+|---|---|
+| `[*] --> A`, `A --> [*]` | Start und Ende |
+| `A --> B : Ereignis`, `A -> B`, `A -right-> B`, `A -[#red]-> B`, `B <-- A` | Übergänge; jeder Pfeil |
+| `state A`, `state "Langer Name" as A`, `state A : Text`, `A : Text` | Zustände, angezeigte Namen, Beschreibungen |
+| `state A {` … `}` | ein zusammengesetzter Zustand, beliebig verschachtelt |
+| `--` oder `||` innerhalb eines zusammengesetzten | nebenläufige Regionen |
+| `state C <<choice>>`, `<<fork>>`, `<<join>>` | Pseudozustände |
+| `note left of A : Text`, `note right of A` … `end note` | Notizen (`top` und `bottom` gehen nach links und rechts) |
+| `[H]`, `[H*]` | als Zustand namens H gezeichnet |
+| `state A #pink`, `hide empty description` | akzeptiert |
+
+## ER-Diagramme
+
+```
+@startuml
+entity Customer {
+  * id : int <<PK>>
+  --
+  name : text
+}
+entity "Order" as O {
+  * id : int <<PK>>
+  customer_id : int <<FK>>
+}
+Customer ||--o{ O : places
+@enduml
+```
+
+| Syntax | |
+|---|---|
+| `entity Name { … }`, `entity "Lang" as N { … }` | eine Entität |
+| `[*] name : typ <<PK>>` | ein Attribut; `<<PK>>`, `<<FK>>`, `<<UK>>` sind Schlüssel, andere Stereotypen der Kommentar; `*` (Pflicht) wird akzeptiert |
+| `--`, `..`, `==`, `__` | Trenner, übersprungen |
+| `A \|\|--o{ B : Beschriftung` | eine Beziehung mit Krähenfuß-Enden: `\|\|` eins, `\|o`/`o\|` null oder eins, `}\|`/`\|{` eins oder mehr, `}o`/`o{` null oder mehr; `..` gestrichelt |
+
+Ein Diagramm ist ER, wenn es Krähenfuß-Verbindungen oder Entitäten mit
+Rumpf und keine Klassen-Schlüsselwörter hat.

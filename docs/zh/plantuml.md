@@ -15,7 +15,7 @@ return rows
 
 PlantUML 没有表示图类型的关键字：与 PlantUML 本身一样，类型根据语句内容识别。`:动作;` 行、`start`、`if (…)` —— 活动图；`[组件]`、`(用例)`、`node`、`package` 及其他元素关键字 —— 用例图、组件图和部署图；参与者与消息 —— 时序图。`detect()` 对时序图返回 `sequence`，对其他图返回 `flowchart`（即绘制它们所用的模型）。
 
-本版本支持：**时序图**、**用例图**、**组件图**、**部署图**和**活动图**。类图、对象图、状态图、ER、C4、思维导图、甘特图、时间图和 Salt 将在后续版本中提供；遇到这类源码时会抛出说明原因的错误。
+支持：**时序图**、**用例图**、**组件图**、**部署图**、**活动图**、**类图**、**对象图**、**状态图**和 **ER 图**（Information Engineering 表示法）。C4、思维导图、甘特图、时间图和 Salt 将在后续版本中提供；遇到这类源码时会抛出说明原因的错误。`detect()` 返回绘制该图所用的模型：`sequence`、`flowchart`（用例图、组件图、部署图、活动图）、`class`（类图、对象图）、`state`、`er`。
 
 ## 所有图通用
 
@@ -111,5 +111,92 @@ stop
 | `partition 名称 {` … `}`、`group 名称` … `end group` | 围绕动作的框 |
 | `-> 文本;`、`-[#red,dashed]->` | 下一条箭头的标签和样式 |
 | `note left: 文本`、`note right` … `end note` | 位于上一个动作旁的注释 |
+| `|泳道|`、`|#颜色|泳道|` | 泳道：其后直到下一个泳道的动作，都框在该泳道名称下 |
 
-暂不支持：泳道（`|泳道|`）——暂时请使用 `partition`——以及使用 `(*)` 的旧语法。
+泳道绘制为围绕其动作、带名称的框，而不是贯穿整个高度的列。不支持使用 `(*)` 的旧语法。
+
+## 类图和对象图
+
+```
+@startuml
+package shop {
+  abstract class Shape {
+    {abstract} +area() : double
+    -name : String
+  }
+  class Circle extends Shape
+  interface Drawable
+}
+Circle ..|> Drawable
+Shape "1" *-- "many" Point : vertices
+@enduml
+```
+
+| 语法 | |
+|---|---|
+| `class`、`abstract class`、`abstract`、`interface`、`enum`、`annotation`、`entity`、`struct`、`record`、`exception`、`protocol`、`metaclass` | 类；除 `class` 外都会显示为其构造型 |
+| `class "长名称" as L`、`class Box<T>`、`<<构造型>>`、`#颜色` | 显示名称、泛型、构造型；颜色被接受 |
+| `class B extends A implements I, J` | 继承与实现 |
+| `class A {` … `}` | 成员：`+字段 : 类型`、`-方法(参数 : T) : R`、`{static}`、`{abstract}`、`{field}`、`{method}`；分隔符 `--`、`..`、`==`、`__`；枚举值每行一个 |
+| `A : +成员` | 在类外声明的成员 |
+| `A <\|-- B`、`*--`、`o--`、`-->`、`..>`、`..\|>`、`--`、`..` | 关系；方向词（`-up->`）和样式被接受 |
+| `A "1" *-- "many" B : 标签 >` | 多重性和标签（末尾的阅读箭头会被去掉） |
+| `package P {` … `}`、`namespace P {` … `}` | 围绕其类的框；嵌套包按路径命名（`app.core`） |
+| `note right of A : 文本`、`note "文本" as N` 配合 `N .. A`、`note "文本"` | 类上的注释、关联注释或独立注释 |
+| `object o`、`o : 字段 = 值`、`object o { … }`、`map M { 键 => 值 }` | 对象图：对象和映射绘制为带值的方框 |
+| `hide empty members`、`hide circle`、`show …`、`remove …` | 接受但忽略 |
+
+## 状态图
+
+```
+@startuml
+[*] --> Idle
+state Working {
+  [*] --> Busy
+  --
+  [*] --> Logging
+}
+state Check <<choice>>
+Idle --> Working : start
+Working --> Check
+Check --> [*]
+@enduml
+```
+
+| 语法 | |
+|---|---|
+| `[*] --> A`、`A --> [*]` | 开始与结束 |
+| `A --> B : 事件`、`A -> B`、`A -right-> B`、`A -[#red]-> B`、`B <-- A` | 转换；任意箭头 |
+| `state A`、`state "长名称" as A`、`state A : 文本`、`A : 文本` | 状态、显示名称、描述 |
+| `state A {` … `}` | 复合状态，可任意嵌套 |
+| 复合状态内的 `--` 或 `||` | 并发区域 |
+| `state C <<choice>>`、`<<fork>>`、`<<join>>` | 伪状态 |
+| `note left of A : 文本`、`note right of A` … `end note` | 注释（`top` 和 `bottom` 分别放在左侧和右侧） |
+| `[H]`、`[H*]` | 绘制为名为 H 的状态 |
+| `state A #pink`、`hide empty description` | 接受 |
+
+## ER 图
+
+```
+@startuml
+entity Customer {
+  * id : int <<PK>>
+  --
+  name : text
+}
+entity "Order" as O {
+  * id : int <<PK>>
+  customer_id : int <<FK>>
+}
+Customer ||--o{ O : places
+@enduml
+```
+
+| 语法 | |
+|---|---|
+| `entity 名称 { … }`、`entity "长名称" as N { … }` | 实体 |
+| `[*] 名称 : 类型 <<PK>>` | 属性；`<<PK>>`、`<<FK>>`、`<<UK>>` 为键，其他构造型作为注释；接受 `*`（必填） |
+| `--`、`..`、`==`、`__` | 分隔符，跳过 |
+| `A \|\|--o{ B : 标签` | 带鸦爪端点的关系：`\|\|` 一，`\|o`/`o\|` 零或一，`}\|`/`\|{` 一或多，`}o`/`o{` 零或多；`..` 虚线 |
+
+当图中有鸦爪连线，或有带主体的实体且没有类关键字时，按 ER 图处理。

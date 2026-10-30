@@ -21,10 +21,12 @@ element keywords — use case, component and deployment; participants and
 messages — sequence. `detect()` reports `sequence`, or `flowchart` for the
 others (that is the model they are drawn with).
 
-Supported in this release: **sequence**, **use case**, **component**,
-**deployment** and **activity** diagrams. Class, object, state, ER, C4,
-mind map, Gantt, timing and Salt come in later releases; a source of those
-raises an error saying so.
+Supported: **sequence**, **use case**, **component**, **deployment**,
+**activity**, **class**, **object**, **state** and **ER** (Information
+Engineering) diagrams. C4, mind map, Gantt, timing and Salt come in later
+releases; a source of those raises an error saying so. `detect()` reports
+the model a diagram is drawn with: `sequence`, `flowchart` (use case,
+component, deployment, activity), `class` (class, object), `state`, `er`.
 
 ## Common to every diagram
 
@@ -122,6 +124,94 @@ stop
 | `partition Name {` … `}`, `group Name` … `end group` | a frame around actions |
 | `-> text;`, `-[#red,dashed]->` | the label and style of the next arrow |
 | `note left: text`, `note right` … `end note` | a note beside the last action |
+| `|Lane|`, `|#color|Lane|` | swimlanes: the actions after it, until the next lane, are framed under the lane's name |
 
-Not supported yet: swimlanes (`|Lane|`) — use `partition` for now — and the
-old syntax with `(*)`.
+Swimlanes are drawn as labelled frames around their actions, not as
+full-height columns. Not supported: the old syntax with `(*)`.
+
+## Class and object diagrams
+
+```
+@startuml
+package shop {
+  abstract class Shape {
+    {abstract} +area() : double
+    -name : String
+  }
+  class Circle extends Shape
+  interface Drawable
+}
+Circle ..|> Drawable
+Shape "1" *-- "many" Point : vertices
+@enduml
+```
+
+| Syntax | |
+|---|---|
+| `class`, `abstract class`, `abstract`, `interface`, `enum`, `annotation`, `entity`, `struct`, `record`, `exception`, `protocol`, `metaclass` | a class; all but `class` are shown as its stereotype |
+| `class "Long name" as L`, `class Box<T>`, `<<stereotype>>`, `#color` | shown name, generics, stereotypes; colours are accepted |
+| `class B extends A implements I, J` | inheritance and realisation |
+| `class A {` … `}` | members: `+field : Type`, `-method(arg : T) : R`, `{static}`, `{abstract}`, `{field}`, `{method}`; separators `--`, `..`, `==`, `__`; enum values one per line |
+| `A : +member` | a member declared outside the class |
+| `A <\|-- B`, `*--`, `o--`, `-->`, `..>`, `..\|>`, `--`, `..` | relationships; direction words (`-up->`) and styles are accepted |
+| `A "1" *-- "many" B : label >` | multiplicities and a label (a reading arrow at its end is dropped) |
+| `package P {` … `}`, `namespace P {` … `}` | a frame around its classes; nested packages are named by their path (`app.core`) |
+| `note right of A : text`, `note "text" as N` with `N .. A`, `note "text"` | notes on a class, tied, or free |
+| `object o`, `o : field = value`, `object o { … }`, `map M { key => value }` | object diagrams: objects and maps drawn as boxes with their values |
+| `hide empty members`, `hide circle`, `show …`, `remove …` | accepted and ignored |
+
+## State diagrams
+
+```
+@startuml
+[*] --> Idle
+state Working {
+  [*] --> Busy
+  --
+  [*] --> Logging
+}
+state Check <<choice>>
+Idle --> Working : start
+Working --> Check
+Check --> [*]
+@enduml
+```
+
+| Syntax | |
+|---|---|
+| `[*] --> A`, `A --> [*]` | start and end |
+| `A --> B : event`, `A -> B`, `A -right-> B`, `A -[#red]-> B`, `B <-- A` | transitions; any arrow |
+| `state A`, `state "Long name" as A`, `state A : text`, `A : text` | states, shown names, descriptions |
+| `state A {` … `}` | a composite state, nested to any depth |
+| `--` or `||` inside a composite | concurrent regions |
+| `state C <<choice>>`, `<<fork>>`, `<<join>>` | pseudo states |
+| `note left of A : text`, `note right of A` … `end note` | notes (`top` and `bottom` go left and right) |
+| `[H]`, `[H*]` | drawn as a state named H |
+| `state A #pink`, `hide empty description` | accepted |
+
+## ER diagrams
+
+```
+@startuml
+entity Customer {
+  * id : int <<PK>>
+  --
+  name : text
+}
+entity "Order" as O {
+  * id : int <<PK>>
+  customer_id : int <<FK>>
+}
+Customer ||--o{ O : places
+@enduml
+```
+
+| Syntax | |
+|---|---|
+| `entity Name { … }`, `entity "Long" as N { … }` | an entity |
+| `[*] name : type <<PK>>` | an attribute; `<<PK>>`, `<<FK>>`, `<<UK>>` are keys, other stereotypes the comment; `*` (mandatory) is accepted |
+| `--`, `..`, `==`, `__` | separators, skipped |
+| `A \|\|--o{ B : label` | a relationship with crow's foot ends: `\|\|` one, `\|o`/`o\|` zero or one, `}\|`/`\|{` one or more, `}o`/`o{` zero or more; `..` dashed |
+
+A diagram is ER when it has crow's foot links or entities with bodies and
+no class keywords.
