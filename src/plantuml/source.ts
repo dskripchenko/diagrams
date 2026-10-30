@@ -56,7 +56,7 @@ function stripLineComment(line: string): string {
 const UNSUPPORTED_DIRECTIVE = /^!(include|includeurl|includesub|import|define|definelong|procedure|function|unquoted|if|ifdef|ifndef|while|foreach|local|global|\$)/i
 
 /** Statements that only style the picture: the themes do that here. */
-const STYLING = /^(skinparam\b|!theme\b|!pragma\b|scale\b|hide\s+(empty\s+)?(members|methods|fields|circle|stereotype|unlinked|@unlinked)|show\s|allowmixing\b|allow_mixing\b|set\s+namespaceSeparator|autoactivate\b|skin\b|newpage\b|mainframe\b)/i
+const STYLING = /^(skinparam\b|!theme\b|!pragma\b|scale\b|(hide|remove|restore)\s+(empty\s+)?(members|methods|fields|attributes|circle|stereotype|unlinked|@unlinked|description|private|protected|package|public|\$\w+|<<[^>]*>>)|show\s|allowmixing\b|allow_mixing\b|set\s+namespaceSeparator|autoactivate\b|skin\b|newpage\b|mainframe\b)/i
 
 export function readPlantUml(source: string): PlantUmlSource {
   const lines = source.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n')

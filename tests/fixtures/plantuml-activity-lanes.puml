@@ -1,0 +1,18 @@
+@startuml
+|Customer|
+start
+:Place order;
+|#AntiqueWhite|Shop|
+:Check stock;
+if (Available?) then (yes)
+  :Reserve;
+  |Warehouse|
+  :Ship;
+else (no)
+  |Shop|
+  :Refund;
+endif
+|Customer|
+:Receive;
+stop
+@enduml

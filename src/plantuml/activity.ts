@@ -19,8 +19,9 @@
  * (`:text;`, any SDL ending), with a colour (`#pink:text;`); if / elseif /
  * else / endif; while / endwhile; repeat / repeat while; fork / fork again /
  * end fork / end merge; split / split again / end split; partition and group;
- * arrow labels and styles (`-> text;`, `-[#red,dashed]->`); notes. Swimlanes
- * (`|Lane|`) come in a later release.
+ * arrow labels and styles (`-> text;`, `-[#red,dashed]->`); notes;
+ * swimlanes (`|Lane|`, `|#color|Lane|`), drawn as labelled frames around
+ * their actions rather than full-height columns.
  */
 import { DiagramError } from '../core/errors'
 import type { Statement } from '../core/scanner'
@@ -84,6 +85,9 @@ class Reader {
   private count = 0
   private i = 0
   private readonly partitions: string[] = []
+  /** The current swimlane: a subgraph every action outside a partition joins. */
+  private lane: string | undefined
+  private readonly lanes = new Map<string, string>()
   /** `-> label;` and `-[style]->` before the next connection. */
   private pending: { label?: string; stroke?: Stroke; style?: UserStyle } = {}
   private readonly list: Statement[]
@@ -104,7 +108,7 @@ class Reader {
 
   private node(shape: ShapeKind, text: string, style?: UserStyle): string {
     const id = `a${++this.count}`
-    this.chart.nodes.set(id, { id, text, markdown: false, shape, classes: [], style, subgraph: this.partitions[this.partitions.length - 1] })
+    this.chart.nodes.set(id, { id, text, markdown: false, shape, classes: [], style, subgraph: this.partitions[this.partitions.length - 1] ?? this.lane })
     return id
   }
 
@@ -181,8 +185,17 @@ class Reader {
       if (target) this.chart.edges.push({ from: target.id, to: id, stroke: 'dotted', start: 'none', end: 'none', length: 1, markdown: false })
       return tails
     }
-    if (/^\|.*\|/.test(t)) {
-      throw new DiagramError('Swimlanes (|Lane|) are not supported yet', s.line, s.column, 'Use partition Name { … } to group actions for now.')
+    if ((m = /^\|(?:(#[^|]+)\|)?([^|]+)\|$/.exec(t))) {
+      const name = m[2]!.trim()
+      let id = this.lanes.get(name)
+      if (!id) {
+        id = `lane${this.lanes.size + 1}`
+        this.lanes.set(name, id)
+        const style = m[1] ? parseStyle(`fill:${colour(m[1])}`, s.line, s.column) : undefined
+        this.chart.subgraphs.set(id, { id, title: labelText(name), markdown: false, classes: [], style, kind: 'rect' })
+      }
+      this.lane = id
+      return tails
     }
     if (/^\(\*\)/.test(t)) {
       throw new DiagramError('The old activity syntax ((*) --> …) is not supported', s.line, s.column, 'Write start, :action;, stop.')
@@ -262,7 +275,7 @@ class Reader {
 
   private partition(s: Statement, tails: Tail[], word: string, title: string, brace: boolean): Tail[] {
     const id = `p${++this.count}`
-    this.chart.subgraphs.set(id, { id, title: labelText(title.replace(/^"|"$/g, '')), markdown: false, parent: this.partitions[this.partitions.length - 1], classes: [], kind: word === 'group' ? 'rect' : 'frame' })
+    this.chart.subgraphs.set(id, { id, title: labelText(title.replace(/^"|"$/g, '')), markdown: false, parent: this.partitions[this.partitions.length - 1] ?? this.lane, classes: [], kind: word === 'group' ? 'rect' : 'frame' })
     this.partitions.push(id)
     this.i++
     const close = brace || word === 'partition' ? [/^\}$/, /^end\s*(partition|group)$/i] : [/^end\s*group$/i]

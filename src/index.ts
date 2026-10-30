@@ -8,7 +8,7 @@
  */
 import { DiagramError } from './core/errors'
 import { hashId, sanitizeId, type RenderOptions, type RenderResult, type Syntax } from './core/document'
-import { isPlantUml, parsePlantUml } from './plantuml'
+import { isPlantUml, parsePlantUml, PLANTUML_MODELS } from './plantuml'
 import { defaultMeasurer } from './core/text'
 import { header } from './core/scanner'
 import { parsePie, renderPie } from './diagrams/pie'
@@ -101,7 +101,7 @@ export function detectSyntax(source: string): Syntax {
 /** What the model a PlantUML diagram is drawn with is called among the diagram types. */
 function plantUmlType(source: string): DiagramType | null {
   try {
-    return parsePlantUml(source).kind === 'sequence' ? 'sequence' : 'flowchart'
+    return PLANTUML_MODELS[parsePlantUml(source).kind]
   } catch {
     return null
   }
@@ -153,7 +153,7 @@ export function render(source: string, options: RenderOptions = {}): RenderResul
   const measure = options.measureText ?? defaultMeasurer()
   if ((options.syntax ?? detectSyntax(source)) === 'plantuml') {
     const { kind, model } = parsePlantUml(source)
-    const mod = MODULES[kind === 'sequence' ? 'sequence' : 'flowchart']
+    const mod = MODULES[PLANTUML_MODELS[kind]]
     return mod.render(model as never, measure, id, options.title, options.today)
   }
   const mod = moduleFor(source)

@@ -1,0 +1,19 @@
+@startuml
+entity Customer {
+  * id : int <<PK>>
+  --
+  name : text
+  email : text <<UK>>
+}
+entity "Order" as O {
+  * id : int <<PK>>
+  customer_id : int <<FK>>
+  total : money <<generated>>
+}
+entity Item {
+  * order_id : int <<FK>>
+  sku : text
+}
+Customer ||--o{ O : places
+O ||--|{ Item : contains
+@enduml
