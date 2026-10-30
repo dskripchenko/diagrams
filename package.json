@@ -1,11 +1,14 @@
 {
   "name": "@dskripchenko/diagrams",
   "version": "1.1.0",
-  "description": "Diagrams from text — Mermaid and PlantUML syntaxes — rendered to SVG with zero runtime dependencies: flowchart, sequence, state, ER, class, C4, pie, gantt, timeline, XY chart, mind map, use case, component, deployment, activity",
+  "description": "Diagrams from text — Mermaid and PlantUML syntaxes — rendered to SVG with zero runtime dependencies: flowchart, sequence, state, ER, class, C4, pie, gantt, timeline, XY chart, mind map, user journey, quadrant, kanban, requirement, architecture, sankey, git graph, block, use case, component, deployment, activity",
   "keywords": [
     "diagram",
     "mermaid",
     "plantuml",
+    "sankey",
+    "gitgraph",
+    "kanban",
     "uml-diagrams",
     "activity-diagram",
     "component-diagram",
