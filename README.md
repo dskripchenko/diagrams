@@ -30,8 +30,12 @@ return 201
 **Supported:** `flowchart` (with subgraphs and per-subgraph direction),
 `sequenceDiagram`, `stateDiagram-v2`, `erDiagram`, `classDiagram`, C4
 (`C4Context`, `C4Container`, `C4Component`, `C4Dynamic`, `C4Deployment`),
-`pie`, `gantt`, `timeline`, `xychart-beta`, `mindmap`; PlantUML sequence,
-use case, component, deployment and activity diagrams.
+`pie`, `gantt`, `timeline`, `xychart-beta`, `mindmap`, `journey`,
+`quadrantChart`, `kanban`, `requirementDiagram`, `architecture-beta`,
+`sankey-beta`, `gitGraph`, `block-beta`; PlantUML sequence,
+use case, component, deployment, activity (with swimlanes), class, object,
+state, ER, C4 (C4-PlantUML) and timing diagrams, mind maps, WBS, Gantt
+charts and Salt wireframes.
 
 ## Why another renderer
 
@@ -69,6 +73,14 @@ than a silently wrong picture.
 | Timeline | [en](docs/en/timeline.md) | [ru](docs/ru/timeline.md) | [de](docs/de/timeline.md) | [zh](docs/zh/timeline.md) |
 | XY chart | [en](docs/en/xychart.md) | [ru](docs/ru/xychart.md) | [de](docs/de/xychart.md) | [zh](docs/zh/xychart.md) |
 | Mind map | [en](docs/en/mindmap.md) | [ru](docs/ru/mindmap.md) | [de](docs/de/mindmap.md) | [zh](docs/zh/mindmap.md) |
+| Journey | [en](docs/en/journey.md) | [ru](docs/ru/journey.md) | [de](docs/de/journey.md) | [zh](docs/zh/journey.md) |
+| Quadrant chart | [en](docs/en/quadrant.md) | [ru](docs/ru/quadrant.md) | [de](docs/de/quadrant.md) | [zh](docs/zh/quadrant.md) |
+| Kanban board | [en](docs/en/kanban.md) | [ru](docs/ru/kanban.md) | [de](docs/de/kanban.md) | [zh](docs/zh/kanban.md) |
+| Requirement diagram | [en](docs/en/requirement.md) | [ru](docs/ru/requirement.md) | [de](docs/de/requirement.md) | [zh](docs/zh/requirement.md) |
+| Architecture diagram | [en](docs/en/architecture.md) | [ru](docs/ru/architecture.md) | [de](docs/de/architecture.md) | [zh](docs/zh/architecture.md) |
+| Sankey diagram | [en](docs/en/sankey.md) | [ru](docs/ru/sankey.md) | [de](docs/de/sankey.md) | [zh](docs/zh/sankey.md) |
+| Git graph | [en](docs/en/gitgraph.md) | [ru](docs/ru/gitgraph.md) | [de](docs/de/gitgraph.md) | [zh](docs/zh/gitgraph.md) |
+| Block diagram | [en](docs/en/block.md) | [ru](docs/ru/block.md) | [de](docs/de/block.md) | [zh](docs/zh/block.md) |
 | PlantUML | [en](docs/en/plantuml.md) | [ru](docs/ru/plantuml.md) | [de](docs/de/plantuml.md) | [zh](docs/zh/plantuml.md) |
 | Theming | [en](docs/en/theming.md) | [ru](docs/ru/theming.md) | [de](docs/de/theming.md) | [zh](docs/zh/theming.md) |
 

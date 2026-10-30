@@ -1,0 +1,23 @@
+requirementDiagram
+  requirement login {
+    id: 1
+    text: The user signs in with a password.
+    risk: high
+    verifymethod: test
+  }
+  functionalRequirement reset {
+    id: 1.1
+    text: A forgotten password can be reset by email.
+    risk: medium
+    verifymethod: demonstration
+  }
+  element web {
+    type: service
+    docref: docs/web.md
+  }
+  element e2e {
+    type: test suite
+  }
+  web - satisfies -> login
+  reset - derives -> login
+  e2e - verifies -> login

@@ -21,6 +21,25 @@ export interface PlantUmlSource {
   direction?: 'LR' | 'TB'
   /** `hide footbox` (sequence). */
   hideFootbox: boolean
+  /** The C4-PlantUML library included (`!include <C4/C4_Container>`): the diagram is C4 of that level. */
+  c4?: 'C4Context' | 'C4Container' | 'C4Component' | 'C4Dynamic' | 'C4Deployment'
+}
+
+/** C4-PlantUML's library files and the C4 diagram each one is for. */
+const C4_LIBRARIES: Record<string, NonNullable<PlantUmlSource['c4']>> = {
+  c4: 'C4Context',
+  c4_context: 'C4Context',
+  c4_container: 'C4Container',
+  c4_component: 'C4Component',
+  c4_dynamic: 'C4Dynamic',
+  c4_deployment: 'C4Deployment',
+  c4_sequence: 'C4Dynamic',
+}
+
+/** The C4 level of a C4-PlantUML `!include`, or null for any other include. */
+function c4Include(text: string): NonNullable<PlantUmlSource['c4']> | null {
+  const m = /^!include(?:url)?\s+.*?\b(C4(?:_\w+)?)(?:\.puml)?\s*>?\s*$/i.exec(text)
+  return m ? (C4_LIBRARIES[m[1]!.toLowerCase()] ?? null) : null
 }
 
 const FRAMES: Record<string, PlantUmlFrame> = {
@@ -56,7 +75,7 @@ function stripLineComment(line: string): string {
 const UNSUPPORTED_DIRECTIVE = /^!(include|includeurl|includesub|import|define|definelong|procedure|function|unquoted|if|ifdef|ifndef|while|foreach|local|global|\$)/i
 
 /** Statements that only style the picture: the themes do that here. */
-const STYLING = /^(skinparam\b|!theme\b|!pragma\b|scale\b|hide\s+(empty\s+)?(members|methods|fields|circle|stereotype|unlinked|@unlinked)|show\s|allowmixing\b|allow_mixing\b|set\s+namespaceSeparator|autoactivate\b|skin\b|newpage\b|mainframe\b)/i
+const STYLING = /^(skinparam\b|!theme\b|!pragma\b|scale\b|(hide|remove|restore)\s+(empty\s+)?(members|methods|fields|attributes|circle|stereotype|unlinked|@unlinked|description|private|protected|package|public|\$\w+|<<[^>]*>>)|show\s|allowmixing\b|allow_mixing\b|set\s+namespaceSeparator|autoactivate\b|skin\b|newpage\b|mainframe\b)/i
 
 export function readPlantUml(source: string): PlantUmlSource {
   const lines = source.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n')
@@ -128,6 +147,13 @@ export function readPlantUml(source: string): PlantUmlSource {
       continue
     }
 
+    const c4 = c4Include(trimmed)
+    if (c4) {
+      // The deepest level included wins: a component diagram includes the container library too.
+      const order = ['C4Context', 'C4Container', 'C4Component', 'C4Deployment', 'C4Dynamic']
+      if (!out.c4 || order.indexOf(c4) > order.indexOf(out.c4)) out.c4 = c4
+      continue
+    }
     if (UNSUPPORTED_DIRECTIVE.test(trimmed)) {
       throw new DiagramError(
         `The preprocessor directive "${trimmed.split(/\s/)[0]}" is not supported`,

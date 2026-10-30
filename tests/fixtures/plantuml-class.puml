@@ -1,0 +1,29 @@
+@startuml
+title Shapes
+package geometry {
+  abstract class Shape <<domain>> {
+    {abstract} +area() : double
+    -name : String
+    --
+    +rename(n : String) : void
+  }
+  class Circle extends Shape {
+    +radius : double
+    {static} +UNIT : Circle
+  }
+  interface Drawable {
+    +draw(c : Canvas)
+  }
+  enum Color {
+    RED
+    GREEN
+  }
+}
+class "Point<T>" as Point
+Circle ..|> Drawable
+Shape "1" *-- "many" Point : vertices >
+Shape --> Color
+note right of Circle : radius > 0
+note "Kept in memory" as N
+N .. Point
+@enduml

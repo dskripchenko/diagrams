@@ -1,0 +1,17 @@
+gitGraph
+  commit id: "init"
+  branch develop
+  checkout develop
+  commit id: "api"
+  commit id: "ui" tag: "v0.1"
+  branch feature
+  commit id: "search"
+  checkout main
+  commit type: HIGHLIGHT id: "hotfix"
+  merge develop tag: "v1.0"
+  checkout feature
+  commit id: "filters"
+  checkout develop
+  merge feature
+  checkout main
+  cherry-pick id: "filters"

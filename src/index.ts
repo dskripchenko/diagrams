@@ -8,7 +8,7 @@
  */
 import { DiagramError } from './core/errors'
 import { hashId, sanitizeId, type RenderOptions, type RenderResult, type Syntax } from './core/document'
-import { isPlantUml, parsePlantUml } from './plantuml'
+import { isPlantUml, parsePlantUml, PLANTUML_MODELS } from './plantuml'
 import { defaultMeasurer } from './core/text'
 import { header } from './core/scanner'
 import { parsePie, renderPie } from './diagrams/pie'
@@ -22,6 +22,16 @@ import { parseMindmap, renderMindmap } from './diagrams/mindmap'
 import { parseEr, renderEr } from './diagrams/er'
 import { parseClass, renderClass } from './diagrams/class'
 import { parseC4, renderC4 } from './diagrams/c4'
+import { renderSalt } from './diagrams/salt'
+import { parseJourney, renderJourney } from './diagrams/journey'
+import { parseKanban, renderKanban } from './diagrams/kanban'
+import { parseQuadrant, renderQuadrant } from './diagrams/quadrant'
+import { parseRequirement } from './diagrams/requirement'
+import { parseArchitecture } from './diagrams/architecture'
+import { parseBlock, renderBlock } from './diagrams/block'
+import { parseGitGraph, renderGitGraph } from './diagrams/gitgraph'
+import { parseSankey, renderSankey } from './diagrams/sankey'
+import { renderTiming } from './diagrams/timing'
 
 export { DiagramError } from './core/errors'
 export type { RenderOptions, RenderResult, Syntax } from './core/document'
@@ -43,6 +53,17 @@ export type DiagramType =
   | 'er'
   | 'class'
   | 'c4'
+  | 'journey'
+  | 'quadrant'
+  | 'kanban'
+  | 'requirement'
+  | 'architecture'
+  | 'sankey'
+  | 'gitgraph'
+  | 'block'
+  // Drawn from PlantUML only.
+  | 'timing'
+  | 'salt'
 
 interface DiagramModule {
   parse(source: string): unknown
@@ -68,6 +89,21 @@ const MODULES: Record<DiagramType, DiagramModule> = {
   er: { parse: parseEr, render: renderEr as DiagramModule['render'] },
   class: { parse: parseClass, render: renderClass as DiagramModule['render'] },
   c4: { parse: parseC4, render: renderC4 as DiagramModule['render'] },
+  journey: { parse: parseJourney, render: renderJourney as DiagramModule['render'] },
+  quadrant: { parse: parseQuadrant, render: renderQuadrant as DiagramModule['render'] },
+  kanban: { parse: parseKanban, render: renderKanban as DiagramModule['render'] },
+  // Drawn with the class and flowchart renderers.
+  requirement: { parse: parseRequirement, render: renderClass as DiagramModule['render'] },
+  architecture: { parse: parseArchitecture, render: renderFlowchart as DiagramModule['render'] },
+  sankey: { parse: parseSankey, render: renderSankey as DiagramModule['render'] },
+  gitgraph: { parse: parseGitGraph, render: renderGitGraph as DiagramModule['render'] },
+  block: { parse: parseBlock, render: renderBlock as DiagramModule['render'] },
+  timing: { parse: () => plantUmlOnly('timing'), render: renderTiming as DiagramModule['render'] },
+  salt: { parse: () => plantUmlOnly('salt'), render: renderSalt as DiagramModule['render'] },
+}
+
+function plantUmlOnly(type: string): never {
+  throw new DiagramError(`${type} diagrams are written in PlantUML`, 0, 0, 'Start the source with @startuml.')
 }
 
 const KEYWORDS: Record<string, DiagramType> = {
@@ -91,6 +127,16 @@ const KEYWORDS: Record<string, DiagramType> = {
   C4Component: 'c4',
   C4Dynamic: 'c4',
   C4Deployment: 'c4',
+  journey: 'journey',
+  quadrantChart: 'quadrant',
+  kanban: 'kanban',
+  requirementDiagram: 'requirement',
+  'architecture-beta': 'architecture',
+  'sankey-beta': 'sankey',
+  sankey: 'sankey',
+  gitGraph: 'gitgraph',
+  'block-beta': 'block',
+  block: 'block',
 }
 
 /** The syntax of a source: PlantUML when it starts with `@start…`, else Mermaid. */
@@ -101,7 +147,7 @@ export function detectSyntax(source: string): Syntax {
 /** What the model a PlantUML diagram is drawn with is called among the diagram types. */
 function plantUmlType(source: string): DiagramType | null {
   try {
-    return parsePlantUml(source).kind === 'sequence' ? 'sequence' : 'flowchart'
+    return PLANTUML_MODELS[parsePlantUml(source).kind]
   } catch {
     return null
   }
@@ -153,7 +199,7 @@ export function render(source: string, options: RenderOptions = {}): RenderResul
   const measure = options.measureText ?? defaultMeasurer()
   if ((options.syntax ?? detectSyntax(source)) === 'plantuml') {
     const { kind, model } = parsePlantUml(source)
-    const mod = MODULES[kind === 'sequence' ? 'sequence' : 'flowchart']
+    const mod = MODULES[PLANTUML_MODELS[kind]]
     return mod.render(model as never, measure, id, options.title, options.today)
   }
   const mod = moduleFor(source)

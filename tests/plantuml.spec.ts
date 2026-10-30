@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { approximateMeasurer, detect, detectSyntax, DiagramError, parse, render } from '../src'
+import { parseClass, type ClassDiagram } from '../src/diagrams/class/parser'
+import { Translation } from '../src/plantuml/translate'
+import type { ErDiagram } from '../src/diagrams/er/parser'
 import type { Flowchart } from '../src/diagrams/flowchart/parser'
+import type { StateDiagram } from '../src/diagrams/state/parser'
 import type { SequenceDiagram } from '../src/diagrams/sequence/parser'
 
 const opts = { measureText: approximateMeasurer }
@@ -27,6 +31,9 @@ describe('PlantUML: the frame and detection', () => {
     // Elements that sequence diagrams also know: deployment when other elements are there.
     expect(detect(uml('entity E\nnode N\nE --> N'))).toBe('flowchart')
     expect(detect(uml('entity E\nE -> E : self'))).toBe('sequence')
+    expect(detect(uml('class A\nA <|-- B'))).toBe('class')
+    expect(detect(uml('[*] --> A'))).toBe('state')
+    expect(detect(uml('entity E {\n id : int\n}\nE ||--o{ F'))).toBe('er')
   })
 
   it('skips comments, styling and the shared statements', () => {
@@ -38,9 +45,7 @@ describe('PlantUML: the frame and detection', () => {
   it('explains what it cannot do', () => {
     expect(error('@startuml\nA -> B').message).toMatch(/@enduml/)
     expect(error(uml('!include common.puml\nA -> B')).hint).toMatch(/no files/)
-    expect(error(uml('class A')).message).toMatch(/not supported yet/)
-    expect(error(uml('start\n|Lane|\n:a;\nstop')).message).toMatch(/Swimlanes/)
-    expect(error('@startmindmap\n* a\n@endmindmap').message).toMatch(/not supported yet/)
+    expect(error('@startjson\n{}\n@endjson').message).toMatch(/not supported yet/)
     const e = error(uml('A -> B\nwhat is this'))
     expect(e).toBeInstanceOf(DiagramError)
     expect(e.line).toBe(3)
@@ -192,9 +197,123 @@ describe('PlantUML activity', () => {
   })
 })
 
+describe('PlantUML class and object diagrams', () => {
+  const cls = (body: string) => parse(uml(body)) as ClassDiagram
+
+  it('declares every kind with its annotation, aliases, generics and stereotypes', () => {
+    const d = cls('abstract class A\ninterface I\nenum E {\nX\nY\n}\nclass "Long name" as L <<svc>> #pink\nclass Box<T>\nannotation N\nA <|-- L')
+    expect(d.classes.get('A')!.annotations).toEqual(['abstract'])
+    expect(d.classes.get('I')!.annotations).toEqual(['interface'])
+    expect(d.classes.get('E')!.attributes.map((m) => m.text)).toEqual(['X', 'Y'])
+    expect(d.classes.get('L')).toMatchObject({ label: 'Long name', annotations: ['svc'] })
+    expect(d.classes.get('Box')!.generic).toBe('T')
+  })
+
+  it('reads members with modifiers, separators and outside declarations', () => {
+    const d = cls('class A {\n  {static} +count : int\n  --\n  {abstract} +run() : void\n  -name : String\n}\nA : +extra : bool')
+    const a = d.classes.get('A')!
+    expect(a.attributes.map((m) => [m.text, m.classifier])).toEqual([['+count : int', 'static'], ['-name : String', undefined], ['+extra : bool', undefined]])
+    expect(a.methods.map((m) => [m.text, m.classifier])).toEqual([['+run() : void', 'abstract']])
+  })
+
+  it('reads relationships, extends / implements, multiplicities and labels', () => {
+    const d = cls('class A\nclass B extends A implements I {\n  +x : int\n}\nA "1" *-- "many" C : has >\nA o-- D\nA -up-> E\nF ..> A\nG ..|> I')
+    const r = (from: string, to: string) => d.relations.find((x) => x.from === from && x.to === to)!
+    expect(r('A', 'B')).toMatchObject({ fromEnd: 'inheritance', dashed: false })
+    expect(r('I', 'B')).toMatchObject({ fromEnd: 'inheritance', dashed: true })
+    expect(r('A', 'C')).toMatchObject({ fromEnd: 'composition', fromCardinality: '1', toCardinality: 'many', label: 'has' })
+    expect(r('A', 'D')).toMatchObject({ fromEnd: 'aggregation' })
+    expect(r('A', 'E')).toMatchObject({ toEnd: 'arrow' })
+    expect(r('F', 'A')).toMatchObject({ toEnd: 'arrow', dashed: true })
+    expect(r('G', 'I')).toMatchObject({ toEnd: 'inheritance', dashed: true })
+    expect(d.classes.get('B')!.attributes).toHaveLength(1)
+  })
+
+  it('puts classes in packages (nested by path) and attaches notes', () => {
+    const d = cls('package app {\n  package core {\n    class A\n  }\n  class B\n}\nnote right of A : one\nnote "two" as N\nN .. B\nnote "three"')
+    expect(d.classes.get('A')!.namespace).toBe('app.core')
+    expect(d.classes.get('B')!.namespace).toBe('app')
+    expect(d.notes.map((n) => [n.target, n.text])).toEqual([['A', 'one'], ['B', 'two'], [undefined, 'three']])
+  })
+
+  it('reads objects and maps', () => {
+    const d = cls('object o {\n  a = 1\n}\no : b = 2\nmap M {\n  k => v\n}\no --> M')
+    expect(d.classes.get('o')!.attributes.map((m) => m.text)).toEqual(['a = 1', 'b = 2'])
+    expect(d.classes.get('M')!.attributes.map((m) => m.text)).toEqual(['k => v'])
+  })
+
+  it('points errors from the Mermaid parser at the PlantUML line', () => {
+    const t = new Translation('classDiagram')
+    t.add('class A', { text: 'class A', line: 4, column: 3 })
+    t.add('class A {', { text: 'class A {', line: 7, column: 5 })
+    let e: DiagramError | undefined
+    try {
+      t.parse(parseClass)
+    } catch (x) {
+      e = x as DiagramError
+    }
+    expect(e).toBeInstanceOf(DiagramError)
+    expect([e!.line, e!.column]).toEqual([7, 5])
+  })
+})
+
+describe('PlantUML state diagrams', () => {
+  const st = (body: string) => parse(uml(body)) as StateDiagram
+
+  it('reads transitions with any arrow, names, descriptions and pseudo states', () => {
+    const d = st('[*] --> A\nA -right-> B : go\nB -[#red]-> C\nC <-- D\nstate "Long name" as L\nstate A : waiting\nB : busy\nL --> [*]')
+    expect(d.transitions.map((t) => [t.from.startsWith('\u0000') ? '*' : t.from, t.to.startsWith('\u0000') ? '*' : t.to, t.label])).toEqual([
+      ['*', 'A', undefined],
+      ['A', 'B', 'go'],
+      ['B', 'C', undefined],
+      ['D', 'C', undefined],
+      ['L', '*', undefined],
+    ])
+    expect(d.states.get('L')!.name).toBe('Long name')
+    expect(d.states.get('A')!.descriptions).toEqual(['waiting'])
+    expect(d.states.get('B')!.descriptions).toEqual(['busy'])
+  })
+
+  it('reads composites, regions, choice and notes', () => {
+    const d = st('state W {\n  [*] --> X\n  --\n  [*] --> Y\n}\nstate C <<choice>>\nW --> C\nnote right of C\n  one\n  two\nend note')
+    expect(d.composites.get('W')).toBeTruthy()
+    expect([...d.composites.values()].filter((c) => c.region)).toHaveLength(2)
+    expect(d.states.get('C')!.kind).toBe('choice')
+    expect(d.notes[0]).toMatchObject({ target: 'C', side: 'right', text: 'one\ntwo' })
+  })
+})
+
+describe('PlantUML ER diagrams (IE notation)', () => {
+  it('reads entities, attributes with keys and crow\'s foot relationships', () => {
+    const d = parse(uml('entity Customer {\n  * id : int <<PK>>\n  --\n  email : text <<UK>>\n  total : money <<generated>>\n}\nentity "Order" as O\nCustomer ||--o{ O : places\nO }|..|| Customer')) as ErDiagram
+    expect(d.entities.get('Customer')!.attributes).toEqual([
+      { type: 'int', name: 'id', keys: ['PK'], comment: undefined },
+      { type: 'text', name: 'email', keys: ['UK'], comment: undefined },
+      { type: 'money', name: 'total', keys: [], comment: 'generated' },
+    ])
+    expect(d.entities.get('O')!.label).toBe('Order')
+    expect(d.relationships).toEqual([
+      { from: 'Customer', to: 'O', fromCardinality: 'one', toCardinality: 'zero-many', identifying: true, label: 'places' },
+      { from: 'O', to: 'Customer', fromCardinality: 'one-many', toCardinality: 'one', identifying: false, label: '' },
+    ])
+  })
+})
+
+describe('PlantUML activity swimlanes', () => {
+  it('puts actions into lanes, partitions inside the lane', () => {
+    const c = flow('|A|\nstart\n:one;\n|#pink|B|\n:two;\npartition P {\n:three;\n}\n|A|\n:four;\nstop')
+    const lane = (text: string) => c.subgraphs.get([...c.nodes.values()].find((n) => n.text === text)!.subgraph!)!
+    expect(lane('one').title).toBe('A')
+    expect(lane('two').title).toBe('B')
+    expect(lane('two').style!.shape.fill).toBe('pink')
+    expect(lane('three').parent).toBe(lane('two').id)
+    expect(lane('four').title).toBe('A')
+  })
+})
+
 describe('PlantUML labels never become markup', () => {
   const payload = '<script>alert(1)</script>'
-  for (const body of [`A -> B : ${payload}`, `[${payload}] --> [B]`, `start\n:${payload};\nstop`, `note over A : ${payload}`]) {
+  for (const body of [`A -> B : ${payload}`, `[${payload}] --> [B]`, `start\n:${payload};\nstop`, `note over A : ${payload}`, `class A {\n+${payload}\n}`, `[*] --> A : ${payload}`, `entity E {\n${payload} : int\n}\nE ||--o{ F : ${payload}`]) {
     it(body.split('\n')[0]!, () => {
       const svg = render(uml(body), opts).svg
       expect(svg).not.toMatch(/<script/i)

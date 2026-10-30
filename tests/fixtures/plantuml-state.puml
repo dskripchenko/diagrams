@@ -1,0 +1,21 @@
+@startuml
+[*] --> Idle
+state Idle : waiting for work
+state "Working hard" as Working {
+  [*] --> Fetching
+  Fetching -right-> Processing : got data
+  Processing --> [*]
+  --
+  [*] --> Logging
+}
+state Check <<choice>>
+Idle --> Working : start
+Working --> Check
+Check --> Idle : [ok]
+Check --> Failed : [error]
+Failed --> [*]
+note right of Failed
+  retried
+  three times
+end note
+@enduml
