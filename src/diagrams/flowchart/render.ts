@@ -6,7 +6,7 @@ import { documentSvg, type RenderResult } from '../../core/document'
 import { DiagramError } from '../../core/errors'
 import { basisPath, type Box, type Point } from '../../core/geometry'
 import { markerDefs, markerId, type MarkerKind } from '../../core/markers'
-import { drawShape, intersectShape, shapeSize } from '../../core/shapes'
+import { drawShape, intersectShape, labelBelow, labelCentre, shapeSize } from '../../core/shapes'
 import { cssText, mergeStyles, type UserStyle } from '../../core/style'
 import { el, type SvgElement } from '../../core/svg'
 import {
@@ -22,6 +22,9 @@ import { BASE_FONT, v } from '../../core/theme'
 import { layout, type LayoutEdge } from '../../layout/layered'
 import type { EdgeEnd, FlowEdge, Flowchart } from './parser'
 
+/** Shapes with strokes that must not be filled (limbs, ticks). */
+const FIGURE_SHAPES = new Set(['actor', 'boundary', 'control', 'entity', 'node', 'frame', 'artifact', 'note', 'file', 'queue', 'stack'])
+
 /** Markdown strings wrap at this width, as in Mermaid. */
 const MARKDOWN_WRAP = 200
 
@@ -32,7 +35,7 @@ function label(text: string, markdown: boolean, measure: TextMeasurer, font = BA
 }
 
 function marker(end: EdgeEnd): MarkerKind | null {
-  return end === 'arrow' ? 'arrow' : end === 'circle' ? 'circle' : end === 'cross' ? 'cross' : null
+  return end === 'none' ? null : end
 }
 
 function styleFor(classes: readonly string[], own: UserStyle | undefined, defs: Map<string, UserStyle>): UserStyle {
@@ -96,18 +99,22 @@ export function renderFlowchart(chart: Flowchart, measure: TextMeasurer, id: str
       const box = result.clusters.get(sub.id)!
       const style = styleFor(sub.classes, sub.style, chart.classDefs)
       const l = clusterLabels.get(sub.id)
+      // A shaped frame (package, node, cloud…) leaves room for its tab or top above the title.
+      const titleTop = sub.kind === 'folder' ? 14 : sub.kind === 'node' ? 14 : sub.kind === 'cloud' ? 12 : sub.kind === 'frame' ? 2 : 6
       return el('g', { class: 'dg-cluster', 'data-id': sub.id }, [
-        el('rect', {
-          class: 'dg-cluster-box',
-          x: box.x - box.width / 2,
-          y: box.y - box.height / 2,
-          width: box.width,
-          height: box.height,
-          rx: 4,
-          style: cssText(style.shape),
-        }),
+        sub.kind && sub.kind !== 'rect'
+          ? drawShape(sub.kind, box, { className: 'dg-cluster-box', style: cssText(style.shape) })
+          : el('rect', {
+              class: 'dg-cluster-box',
+              x: box.x - box.width / 2,
+              y: box.y - box.height / 2,
+              width: box.width,
+              height: box.height,
+              rx: 4,
+              style: cssText(style.shape),
+            }),
         l
-          ? renderLabel(l, box.x, box.y - box.height / 2 + 6 + l.height / 2, {
+          ? renderLabel(l, sub.kind === 'frame' ? box.x - box.width / 2 + 40 + l.width / 2 : box.x, box.y - box.height / 2 + titleTop + l.height / 2, {
               className: 'dg-cluster-label',
               style: cssText(style.text),
             })
@@ -187,10 +194,13 @@ export function renderFlowchart(chart: Flowchart, measure: TextMeasurer, id: str
     if (!box) throw new DiagramError(`Node "${node.id}" was not laid out`)
     const style = styleFor(node.classes, node.style, chart.classDefs)
     const classes = ['dg-node', ...node.classes.map((c) => `dg-class-${c.replace(/[^\w-]/g, '')}`)].join(' ')
-    const group = el('g', { class: classes, 'data-id': node.id }, [
+    const measuredLabel = nodeLabels.get(node.id)!
+    const at = labelCentre(node.shape, box, measuredLabel.height)
+    const kindClass = node.shape === 'note' ? ' dg-node-note' : labelBelow(node.shape) ? ' dg-node-figure' : ''
+    const group = el('g', { class: classes + kindClass, 'data-id': node.id }, [
       node.tooltip || node.link?.tooltip ? el('title', {}, [{ text: node.link?.tooltip ?? node.tooltip ?? '' }]) : null,
       drawShape(node.shape, box, { style: cssText(style.shape) }),
-      renderLabel(nodeLabels.get(node.id)!, box.x, box.y, { style: cssText(style.text) }),
+      renderLabel(measuredLabel, at.x, at.y, { style: cssText(style.text) }),
     ])
     if (node.link) {
       return el(
@@ -206,8 +216,12 @@ export function renderFlowchart(chart: Flowchart, measure: TextMeasurer, id: str
     return group
   })
 
+  const shapes = new Set([...chart.nodes.values()].map((n) => n.shape))
   const css = [
     `#${id} .dg-edge-label-group text{fill:${v('--dg-text')}}`,
+    // Only when used: diagrams without them render byte for byte as before.
+    shapes.has('note') ? `#${id} .dg-node-note .dg-shape{fill:${v('--dg-note-fill')};stroke:${v('--dg-note-stroke')}}#${id} .dg-node-note .dg-label{fill:${v('--dg-note-text')}}` : '',
+    [...shapes].some((k) => FIGURE_SHAPES.has(k)) ? `#${id} .dg-shape-line{fill:none}` : '',
   ].join('')
 
   return documentSvg({

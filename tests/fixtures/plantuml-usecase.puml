@@ -1,0 +1,15 @@
+@startuml
+left to right direction
+actor Customer
+actor :Support agent: as Agent
+rectangle Shop {
+  (Place order) as PO
+  (Track order)
+  usecase "Refund" as R
+}
+Customer --> PO
+Customer --> (Track order)
+Agent --> R
+R .> PO : <<extend>>
+note right of R : needs approval
+@enduml

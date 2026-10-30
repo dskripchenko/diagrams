@@ -19,6 +19,7 @@ sequenceDiagram
 | `participant A` | a box named `A` |
 | `participant A as Alice` | id `A`, shown as "Alice" |
 | `actor A` | a stick figure instead of a box |
+| `participant A@{ "type": "database" }` | an icon instead of a box: `boundary`, `control`, `entity`, `database`, `collections`, `queue` |
 | (implicit) | a name used in a message becomes a participant |
 
 Participants are placed left to right in the order they are declared or

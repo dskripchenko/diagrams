@@ -1,0 +1,44 @@
+@startuml
+/' Every element keyword once. '/
+actor User
+person Operator
+agent Agent
+artifact "app.jar" as Jar
+boundary Edge
+card Card
+circle Circle
+cloud Cloud
+collections Workers
+component Component
+control Control
+database Database
+entity Entity
+file File
+folder Folder
+frame Frame
+hexagon Hexagon
+interface Interface
+label "Just text" as Label
+node Node
+queue Queue
+rectangle Rectangle
+stack Stack
+storage Storage
+usecase Usecase
+User --> Edge
+Operator --> Node
+Edge --> Component
+Component --> Database
+Component ..> Queue
+Queue --> Workers
+Node *-- Jar
+Folder o-- File
+Cloud --> Storage
+Frame --|> Hexagon
+Stack -- Card
+Agent --> Control
+Control --> Entity
+Interface - Circle
+Rectangle --> Usecase
+Label .. Rectangle
+@enduml

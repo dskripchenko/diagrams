@@ -1,0 +1,30 @@
+@startuml
+title Checkout
+actor User
+participant "Web app" as Web
+boundary Gateway
+control Billing
+entity Order
+database DB
+collections Logs
+queue Bus
+autonumber
+User -> Web ++ : open checkout
+Web -> Gateway : POST /orders
+Gateway -> Billing ++ : charge
+Billing -> DB : insert
+return ok
+== Notifications ==
+Billing ->> Bus : order.paid
+... later ...
+alt card declined
+  Billing --> Web : 402
+else ok
+  Billing --> Web : 201
+end
+note over Web, DB : all calls\nare logged
+group Retry policy
+  Web -> Order : update
+end
+Web --> User -- : done
+@enduml

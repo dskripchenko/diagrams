@@ -123,6 +123,18 @@ export interface FrameGeom {
   color?: string
 }
 
+/** A `== text ==` rule: drawn across the diagram's full width. */
+export interface DividerGeom {
+  y: number
+  label: MeasuredLabel | null
+}
+
+/** A `...` delay: its text centred in the gap. */
+export interface DelayGeom {
+  y: number
+  label: MeasuredLabel | null
+}
+
 export interface GroupGeom {
   left: number
   right: number
@@ -147,6 +159,10 @@ export interface SequenceLayout {
   notes: NoteGeom[]
   actors: ActorGeom[]
   crosses: { x: number; y: number }[]
+  dividers: DividerGeom[]
+  delays: DelayGeom[]
+  /** The x range dividers span, in the geometry's coordinates. */
+  span: { left: number; right: number }
 }
 
 /** Participants in drawing order: members of one box kept together. */
@@ -188,15 +204,17 @@ export function layoutSequence(diagram: SequenceDiagram, measure: TextMeasurer):
 
   // --- Sizes ---------------------------------------------------------------
   const labels = participants.map((p) => measureLabel(parseLabel(p.label), BASE_FONT, measure))
+  // Actors and the icon kinds draw a figure with the name under it.
+  const figured = (p: Participant) => p.kind !== 'participant'
   const widths = participants.map((p, i) =>
-    p.kind === 'actor'
+    figured(p)
       ? Math.max(labels[i]!.width + 8, 50)
       : Math.max(labels[i]!.width + ACTOR_PAD_X * 2, ACTOR_MIN_WIDTH),
   )
   let rowHeight = ACTOR_MIN_HEIGHT
   participants.forEach((p, i) => {
     const h =
-      p.kind === 'actor' ? FIGURE_HEIGHT + 4 + labels[i]!.height : labels[i]!.height + ACTOR_PAD_Y * 2
+      figured(p) ? FIGURE_HEIGHT + 4 + labels[i]!.height : labels[i]!.height + ACTOR_PAD_Y * 2
     rowHeight = Math.max(rowHeight, h)
   })
 
@@ -207,6 +225,9 @@ export function layoutSequence(diagram: SequenceDiagram, measure: TextMeasurer):
     }
     if (event.kind === 'note') {
       return measureLabel(wrapLabel(parseLabel(event.text), NOTE_WRAP, BASE_FONT, measure), BASE_FONT, measure)
+    }
+    if ((event.kind === 'divider' || event.kind === 'delay') && event.text.trim() !== '') {
+      return measureLabel(parseLabel(event.text), event.kind === 'divider' ? TAB_FONT : GUARD_FONT, measure)
     }
     return null
   })
@@ -305,6 +326,8 @@ export function layoutSequence(diagram: SequenceDiagram, measure: TextMeasurer):
   const rects: FrameGeom[] = []
   const open: OpenFrame[] = []
   const crosses: { x: number; y: number }[] = []
+  const dividers: DividerGeom[] = []
+  const delays: DelayGeom[] = []
   const pendingDestroy = new Set<string>()
   let lastMessageY: number | null = null
 
@@ -503,6 +526,28 @@ export function layoutSequence(diagram: SequenceDiagram, measure: TextMeasurer):
         break
       }
 
+      case 'divider': {
+        y += 10
+        dividers.push({ y: y + (label?.height ?? 14) / 2, label })
+        y += (label?.height ?? 14) + 10
+        lastMessageY = null
+        break
+      }
+
+      case 'delay': {
+        const h = Math.max(30, (label?.height ?? 0) + 16)
+        delays.push({ y: y + h / 2, label })
+        y += h
+        lastMessageY = null
+        break
+      }
+
+      case 'space': {
+        y += event.height
+        lastMessageY = null
+        break
+      }
+
       case 'block-start': {
         if (event.block === 'rect') {
           y += 6
@@ -522,8 +567,10 @@ export function layoutSequence(diagram: SequenceDiagram, measure: TextMeasurer):
           y += 6
         } else {
           y += 8
-          const tab = measureLabel(parseLabel(event.block), TAB_FONT, measure)
-          const guard = event.text ? measureLabel(parseLabel(`[${event.text}]`), GUARD_FONT, measure) : null
+          // A group's text is its tab; the other blocks show their keyword and the text as a guard.
+          const group = event.block === 'group'
+          const tab = measureLabel(parseLabel(group ? event.text || 'group' : event.block), TAB_FONT, measure)
+          const guard = !group && event.text ? measureLabel(parseLabel(`[${event.text}]`), GUARD_FONT, measure) : null
           const frame: FrameGeom = {
             block: event.block,
             left: 0,
@@ -591,11 +638,13 @@ export function layoutSequence(diagram: SequenceDiagram, measure: TextMeasurer):
 
   y += 12
   const bottomTop = y
-  participants.forEach((p, i) => {
-    if (lifelineEnd.has(p.id)) return
-    actors.push({ id: p.id, kind: p.kind, label: labels[i]!, x: xs[i]!, top: bottomTop, width: widths[i]!, height: rowHeight })
-  })
-  let height = bottomTop + rowHeight
+  if (!diagram.hideFootbox) {
+    participants.forEach((p, i) => {
+      if (lifelineEnd.has(p.id)) return
+      actors.push({ id: p.id, kind: p.kind, label: labels[i]!, x: xs[i]!, top: bottomTop, width: widths[i]!, height: rowHeight })
+    })
+  }
+  let height = diagram.hideFootbox ? bottomTop : bottomTop + rowHeight
 
   const lifelines: LifelineGeom[] = participants.map((p, i) => ({
     x: xs[i]!,
@@ -632,6 +681,13 @@ export function layoutSequence(diagram: SequenceDiagram, measure: TextMeasurer):
   for (const g of groups) span(g.left, g.right)
   for (const f of [...frames, ...rects]) span(f.left, f.right)
   for (const n of notes) span(n.left, n.left + n.width)
+  // A divider's or delay's text is centred on the diagram: the diagram is at least that wide.
+  const widest = Math.max(0, ...[...dividers, ...delays].map((d) => (d.label ? d.label.width + 40 : 0)))
+  if (maxX - minX < widest) {
+    const grow = (widest - (maxX - minX)) / 2
+    minX -= grow
+    maxX += grow
+  }
   for (const m of messages) {
     span(m.x1, m.x2)
     if (m.self) span(m.loopRight, m.labelX + (m.label?.width ?? 0))
@@ -663,5 +719,8 @@ export function layoutSequence(diagram: SequenceDiagram, measure: TextMeasurer):
     notes,
     actors,
     crosses,
+    dividers,
+    delays,
+    span: { left: minX, right: maxX },
   }
 }

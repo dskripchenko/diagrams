@@ -6,7 +6,12 @@ import { stylesheet } from './theme'
 import { el, serialize, txt, type SvgElement } from './svg'
 import type { TextMeasurer } from './text'
 
+/** The text syntaxes this package reads. */
+export type Syntax = 'mermaid' | 'plantuml'
+
 export interface RenderOptions {
+  /** The source's syntax; recognised from its first line when omitted (`@startuml` → PlantUML). */
+  syntax?: Syntax
   /** How text is measured; defaults to a canvas in the browser and a glyph table elsewhere. */
   measureText?: TextMeasurer
   /**

@@ -1,0 +1,20 @@
+@startuml
+package "Frontend" {
+  [Web app] as Web
+}
+node "Kubernetes" {
+  [Orders] <<service>>
+  [Billing]
+  () "REST" as API
+}
+database "PostgreSQL" as PG
+queue Kafka
+cloud "Payment provider" as PSP
+Web --> API
+API - [Orders]
+[Orders] --> PG
+[Orders] ..> Kafka : events
+[Billing] <-- Kafka
+[Billing] -[#red]-> PSP
+[Orders] -up-|> Web
+@enduml

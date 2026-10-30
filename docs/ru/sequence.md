@@ -19,6 +19,7 @@ sequenceDiagram
 | `participant A` | прямоугольник с именем `A` |
 | `participant A as Alice` | id `A`, отображается как «Alice» |
 | `actor A` | человечек вместо прямоугольника |
+| `participant A@{ "type": "database" }` | значок вместо прямоугольника: `boundary`, `control`, `entity`, `database`, `collections`, `queue` |
 | (неявно) | имя, использованное в сообщении, становится участником |
 
 Участники располагаются слева направо в порядке объявления или первого

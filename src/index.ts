@@ -1,12 +1,14 @@
 /**
- * @dskripchenko/diagrams — Mermaid-syntax diagrams to SVG, with no runtime
- * dependencies and no DOM.
+ * @dskripchenko/diagrams — diagrams from text (Mermaid and PlantUML
+ * syntaxes) to SVG, with no runtime dependencies and no DOM.
  *
  *     import { render } from '@dskripchenko/diagrams'
  *     const { svg } = render('flowchart LR\n  A --> B')
+ *     const { svg: uml } = render('@startuml\nAlice -> Bob : hi\n@enduml')
  */
 import { DiagramError } from './core/errors'
-import { hashId, sanitizeId, type RenderOptions, type RenderResult } from './core/document'
+import { hashId, sanitizeId, type RenderOptions, type RenderResult, type Syntax } from './core/document'
+import { isPlantUml, parsePlantUml } from './plantuml'
 import { defaultMeasurer } from './core/text'
 import { header } from './core/scanner'
 import { parsePie, renderPie } from './diagrams/pie'
@@ -22,7 +24,9 @@ import { parseClass, renderClass } from './diagrams/class'
 import { parseC4, renderC4 } from './diagrams/c4'
 
 export { DiagramError } from './core/errors'
-export type { RenderOptions, RenderResult } from './core/document'
+export type { RenderOptions, RenderResult, Syntax } from './core/document'
+export { parsePlantUml, plantUmlKind } from './plantuml'
+export type { PlantUmlKind, ParsedPlantUml } from './plantuml'
 export type { TextMeasurer, FontSpec, TextSize } from './core/text'
 export { approximateMeasurer, defaultMeasurer } from './core/text'
 export { VARIABLES as THEME_VARIABLES } from './core/theme'
@@ -89,8 +93,28 @@ const KEYWORDS: Record<string, DiagramType> = {
   C4Deployment: 'c4',
 }
 
-/** The diagram type a source declares on its first line, or null. */
+/** The syntax of a source: PlantUML when it starts with `@start…`, else Mermaid. */
+export function detectSyntax(source: string): Syntax {
+  return isPlantUml(source) ? 'plantuml' : 'mermaid'
+}
+
+/** What the model a PlantUML diagram is drawn with is called among the diagram types. */
+function plantUmlType(source: string): DiagramType | null {
+  try {
+    return parsePlantUml(source).kind === 'sequence' ? 'sequence' : 'flowchart'
+  } catch {
+    return null
+  }
+}
+
+/**
+ * The diagram type of a source, or null: a Mermaid source declares it on its
+ * first line; a PlantUML one is recognised from its statements and reported
+ * as the type it is drawn as (`sequence`, or `flowchart` for use case,
+ * component, deployment and activity diagrams).
+ */
 export function detect(source: string): DiagramType | null {
+  if (isPlantUml(source)) return plantUmlType(source)
   const head = header(source)
   if (!head) return null
   return KEYWORDS[head.keyword] ?? null
@@ -114,7 +138,8 @@ function moduleFor(source: string): DiagramModule {
 }
 
 /** Parses without laying out: the diagram's structure, for tools and tests. */
-export function parse(source: string): unknown {
+export function parse(source: string, options: { syntax?: Syntax } = {}): unknown {
+  if ((options.syntax ?? detectSyntax(source)) === 'plantuml') return parsePlantUml(source).model
   return moduleFor(source).parse(source)
 }
 
@@ -124,8 +149,14 @@ export function parse(source: string): unknown {
  * @throws DiagramError when the source cannot be read; the error carries the line and column.
  */
 export function render(source: string, options: RenderOptions = {}): RenderResult {
+  const id = sanitizeId(options.idPrefix ?? hashId(source))
+  const measure = options.measureText ?? defaultMeasurer()
+  if ((options.syntax ?? detectSyntax(source)) === 'plantuml') {
+    const { kind, model } = parsePlantUml(source)
+    const mod = MODULES[kind === 'sequence' ? 'sequence' : 'flowchart']
+    return mod.render(model as never, measure, id, options.title, options.today)
+  }
   const mod = moduleFor(source)
   const ast = mod.parse(source)
-  const id = sanitizeId(options.idPrefix ?? hashId(source))
-  return mod.render(ast as never, options.measureText ?? defaultMeasurer(), id, options.title, options.today)
+  return mod.render(ast as never, measure, id, options.title, options.today)
 }

@@ -1,0 +1,24 @@
+@startuml
+' Two boxes, a created participant, a note block and hide footbox.
+hide footbox
+box "Client" #LightBlue
+  actor Alice
+  participant App
+end box
+box "Server"
+  participant API
+end box
+Alice -> App : log in
+App -> API ++ : POST /session
+API -> Token ** : issue
+note right of API
+  token lives
+  15 minutes
+end note
+API --> App -- : 201
+loop every minute
+  App -> API : refresh
+end
+||45||
+App -> Alice : welcome
+@enduml

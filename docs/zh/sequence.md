@@ -19,6 +19,7 @@ sequenceDiagram
 | `participant A` | 名为 `A` 的方框 |
 | `participant A as Alice` | id 为 `A`，显示为“Alice” |
 | `actor A` | 用小人图形代替方框 |
+| `participant A@{ "type": "database" }` | 用图标代替方框：`boundary`、`control`、`entity`、`database`、`collections`、`queue` |
 | （隐式） | 消息中用到的名称会成为参与者 |
 
 参与者按声明或首次使用的顺序从左到右排列。`<br>` 用于标签换行。

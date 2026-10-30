@@ -13,8 +13,8 @@ const out = join(root, 'tests/browser/output')
 mkdirSync(out, { recursive: true })
 const filter = process.argv[2] ?? ''
 const fixtures = readdirSync(join(root, 'tests/fixtures'))
-  .filter((f) => f.endsWith('.mmd') && f.includes(filter))
-  .map((f) => ({ name: f.replace('.mmd', ''), source: readFileSync(join(root, 'tests/fixtures', f), 'utf8') }))
+  .filter((f) => /\.(mmd|puml)$/.test(f) && f.includes(filter))
+  .map((f) => ({ name: f.replace(/\.(mmd|puml)$/, ''), source: readFileSync(join(root, 'tests/fixtures', f), 'utf8') }))
 
 const DARK = `
   .dark { background: #0f172a; color-scheme: dark;
@@ -55,7 +55,8 @@ const html = `<!doctype html><meta charset="utf-8">
     const svg = document.querySelector('#' + CSS.escape(f.name + '--light') + ' svg')
     if (!svg) continue
     const problems = []
-    for (const group of svg.querySelectorAll('.dg-node')) {
+    // Figures (actor, interface…) have their label under the outline, by design.
+    for (const group of svg.querySelectorAll('.dg-node:not(.dg-node-figure)')) {
       const shape = group.querySelector('.dg-shape, rect, polygon, circle, path')
       const text = group.querySelector('text')
       if (!shape || !text || !text.textContent.trim()) continue
