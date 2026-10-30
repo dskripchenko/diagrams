@@ -224,20 +224,27 @@ export function renderFlowchart(chart: Flowchart, measure: TextMeasurer, id: str
     [...shapes].some((k) => FIGURE_SHAPES.has(k)) ? `#${id} .dg-shape-line{fill:none}` : '',
   ].join('')
 
+  const layers = [
+    el('g', { class: 'dg-clusters' }, clusterEls),
+    el('g', { class: 'dg-edges' }, edgeEls),
+    el('g', { class: 'dg-edge-labels' }, labelEls),
+    el('g', { class: 'dg-nodes' }, nodeEls),
+  ]
+  // A visible title, when the source has one: above the chart, which moves down under it.
+  const heading = chart.title ? measureLabel(parseLabel(chart.title), { ...BASE_FONT, size: 18, weight: 'bold' }, measure) : null
+  const top = heading ? heading.height + 14 : 0
+  const width = Math.max(result.width, heading?.width ?? 0)
   return documentSvg({
     id,
     type: 'flowchart',
-    width: result.width,
-    height: result.height,
-    title: title ?? chart.accessibility.title ?? 'Flowchart',
+    width,
+    height: result.height + top,
+    title: title ?? chart.accessibility.title ?? chart.title ?? 'Flowchart',
     description: chart.accessibility.description,
     defs: markerDefs(id, usedMarkers),
-    body: [
-      el('g', { class: 'dg-clusters' }, clusterEls),
-      el('g', { class: 'dg-edges' }, edgeEls),
-      el('g', { class: 'dg-edge-labels' }, labelEls),
-      el('g', { class: 'dg-nodes' }, nodeEls),
-    ],
-    css,
+    body: heading
+      ? [renderLabel(heading, width / 2, heading.height / 2, { className: 'dg-title' }), el('g', { transform: `translate(${Math.round(((width - result.width) / 2) * 100) / 100},${Math.round(top * 100) / 100})` }, layers)]
+      : layers,
+    css: heading ? `${css}#${id} .dg-title{fill:${v('--dg-text')};font-size:18px;font-weight:bold}` : css,
   })
 }

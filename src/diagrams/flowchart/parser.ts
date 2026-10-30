@@ -54,6 +54,8 @@ export interface FlowSubgraph {
 
 export interface Flowchart {
   type: 'flowchart'
+  /** A visible title above the chart (PlantUML, DOT and D2 sources set it). */
+  title?: string
   direction: Direction
   nodes: Map<string, FlowNode>
   edges: FlowEdge[]

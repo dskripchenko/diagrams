@@ -7,7 +7,7 @@ import { el, serialize, txt, type SvgElement } from './svg'
 import type { TextMeasurer } from './text'
 
 /** The text syntaxes this package reads. */
-export type Syntax = 'mermaid' | 'plantuml'
+export type Syntax = 'mermaid' | 'plantuml' | 'dot' | 'd2' | 'dbml' | 'structurizr' | 'wardley'
 
 export interface RenderOptions {
   /** The source's syntax; recognised from its first line when omitted (`@startuml` → PlantUML). */

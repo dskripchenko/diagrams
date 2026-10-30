@@ -9,6 +9,11 @@
 import { DiagramError } from './core/errors'
 import { hashId, sanitizeId, type RenderOptions, type RenderResult, type Syntax } from './core/document'
 import { isPlantUml, parsePlantUml, PLANTUML_MODELS } from './plantuml'
+import { looksLikeD2, parseD2 } from './syntax/d2'
+import { isDbml, parseDbml } from './syntax/dbml'
+import { isDot, parseDot } from './syntax/dot'
+import { isStructurizr, parseStructurizr } from './syntax/structurizr'
+import { isWardley, parseWardley, renderWardley } from './diagrams/wardley'
 import { defaultMeasurer } from './core/text'
 import { header } from './core/scanner'
 import { parsePie, renderPie } from './diagrams/pie'
@@ -36,6 +41,10 @@ import { renderTiming } from './diagrams/timing'
 export { DiagramError } from './core/errors'
 export type { RenderOptions, RenderResult, Syntax } from './core/document'
 export { parsePlantUml, plantUmlKind } from './plantuml'
+export { parseDot } from './syntax/dot'
+export { parseD2 } from './syntax/d2'
+export { parseDbml } from './syntax/dbml'
+export { parseStructurizr } from './syntax/structurizr'
 export type { PlantUmlKind, ParsedPlantUml } from './plantuml'
 export type { TextMeasurer, FontSpec, TextSize } from './core/text'
 export { approximateMeasurer, defaultMeasurer } from './core/text'
@@ -61,6 +70,7 @@ export type DiagramType =
   | 'sankey'
   | 'gitgraph'
   | 'block'
+  | 'wardley'
   // Drawn from PlantUML only.
   | 'timing'
   | 'salt'
@@ -98,6 +108,7 @@ const MODULES: Record<DiagramType, DiagramModule> = {
   sankey: { parse: parseSankey, render: renderSankey as DiagramModule['render'] },
   gitgraph: { parse: parseGitGraph, render: renderGitGraph as DiagramModule['render'] },
   block: { parse: parseBlock, render: renderBlock as DiagramModule['render'] },
+  wardley: { parse: parseWardley, render: renderWardley as DiagramModule['render'] },
   timing: { parse: () => plantUmlOnly('timing'), render: renderTiming as DiagramModule['render'] },
   salt: { parse: () => plantUmlOnly('salt'), render: renderSalt as DiagramModule['render'] },
 }
@@ -139,9 +150,32 @@ const KEYWORDS: Record<string, DiagramType> = {
   block: 'block',
 }
 
-/** The syntax of a source: PlantUML when it starts with `@start…`, else Mermaid. */
+/**
+ * The syntax of a source, from how it starts: `@start…` — PlantUML;
+ * `digraph` or `graph name {` — DOT; `Table`, `Ref`, `Enum`, `Project` —
+ * DBML; `workspace` — Structurizr; components with coordinates — a Wardley
+ * map; a Mermaid keyword — Mermaid; key–value and edge statements — D2.
+ * Anything else is read as Mermaid, whose error then names the keywords.
+ */
 export function detectSyntax(source: string): Syntax {
-  return isPlantUml(source) ? 'plantuml' : 'mermaid'
+  if (isPlantUml(source)) return 'plantuml'
+  if (isDot(source)) return 'dot'
+  if (isDbml(source)) return 'dbml'
+  if (isStructurizr(source)) return 'structurizr'
+  if (isWardley(source)) return 'wardley'
+  const head = header(source)
+  if (head && KEYWORDS[head.keyword]) return 'mermaid'
+  if (looksLikeD2(source)) return 'd2'
+  return 'mermaid'
+}
+
+/** The other syntaxes: what each is parsed into and drawn as. */
+const SYNTAXES: Record<Exclude<Syntax, 'mermaid' | 'plantuml'>, { type: DiagramType; parse: (source: string) => unknown }> = {
+  dot: { type: 'flowchart', parse: parseDot },
+  d2: { type: 'flowchart', parse: parseD2 },
+  dbml: { type: 'er', parse: parseDbml },
+  structurizr: { type: 'c4', parse: parseStructurizr },
+  wardley: { type: 'wardley', parse: parseWardley },
 }
 
 /** What the model a PlantUML diagram is drawn with is called among the diagram types. */
@@ -160,7 +194,9 @@ function plantUmlType(source: string): DiagramType | null {
  * component, deployment and activity diagrams).
  */
 export function detect(source: string): DiagramType | null {
-  if (isPlantUml(source)) return plantUmlType(source)
+  const syntax = detectSyntax(source)
+  if (syntax === 'plantuml') return plantUmlType(source)
+  if (syntax !== 'mermaid') return SYNTAXES[syntax].type
   const head = header(source)
   if (!head) return null
   return KEYWORDS[head.keyword] ?? null
@@ -185,7 +221,9 @@ function moduleFor(source: string): DiagramModule {
 
 /** Parses without laying out: the diagram's structure, for tools and tests. */
 export function parse(source: string, options: { syntax?: Syntax } = {}): unknown {
-  if ((options.syntax ?? detectSyntax(source)) === 'plantuml') return parsePlantUml(source).model
+  const syntax = options.syntax ?? detectSyntax(source)
+  if (syntax === 'plantuml') return parsePlantUml(source).model
+  if (syntax !== 'mermaid') return SYNTAXES[syntax].parse(source)
   return moduleFor(source).parse(source)
 }
 
@@ -197,7 +235,12 @@ export function parse(source: string, options: { syntax?: Syntax } = {}): unknow
 export function render(source: string, options: RenderOptions = {}): RenderResult {
   const id = sanitizeId(options.idPrefix ?? hashId(source))
   const measure = options.measureText ?? defaultMeasurer()
-  if ((options.syntax ?? detectSyntax(source)) === 'plantuml') {
+  const syntax = options.syntax ?? detectSyntax(source)
+  if (syntax !== 'mermaid' && syntax !== 'plantuml') {
+    const { type, parse: read } = SYNTAXES[syntax]
+    return MODULES[type].render(read(source) as never, measure, id, options.title, options.today)
+  }
+  if (syntax === 'plantuml') {
     const { kind, model } = parsePlantUml(source)
     const mod = MODULES[PLANTUML_MODELS[kind]]
     return mod.render(model as never, measure, id, options.title, options.today)

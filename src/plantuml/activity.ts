@@ -293,6 +293,6 @@ function colour(token: string): string {
 
 export function parsePlantUmlActivity(src: PlantUmlSource): Flowchart {
   const chart = new Reader(src.statements).run()
-  if (src.title) chart.accessibility.title = src.title
+  if (src.title) chart.title = src.title.replace(/\n/g, '<br>')
   return chart
 }

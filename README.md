@@ -4,7 +4,8 @@
 [![npm](https://img.shields.io/npm/v/@dskripchenko/diagrams.svg)](https://www.npmjs.com/package/@dskripchenko/diagrams)
 [![license](https://img.shields.io/npm/l/@dskripchenko/diagrams.svg)](LICENSE)
 
-Diagrams written as text — in **Mermaid** or **PlantUML** syntax — rendered
+Diagrams written as text — in **Mermaid**, **PlantUML**, **Graphviz DOT**,
+**D2**, **DBML**, **Structurizr DSL** or the **Wardley map** DSL — rendered
 to SVG, with **no runtime dependencies** and **no DOM**. A string goes in, a string of SVG comes out:
 the same call works in a browser, in server-side rendering and in a Node
 build script.
@@ -35,7 +36,10 @@ return 201
 `sankey-beta`, `gitGraph`, `block-beta`; PlantUML sequence,
 use case, component, deployment, activity (with swimlanes), class, object,
 state, ER, C4 (C4-PlantUML) and timing diagrams, mind maps, WBS, Gantt
-charts and Salt wireframes.
+charts and Salt wireframes; Graphviz DOT and D2 (drawn as flowcharts), DBML
+(as ER diagrams), Structurizr DSL (as C4) and Wardley maps. The syntax is
+recognised from how a source starts, or given with `render(source, {
+syntax })`.
 
 ## Why another renderer
 
@@ -82,6 +86,11 @@ than a silently wrong picture.
 | Git graph | [en](docs/en/gitgraph.md) | [ru](docs/ru/gitgraph.md) | [de](docs/de/gitgraph.md) | [zh](docs/zh/gitgraph.md) |
 | Block diagram | [en](docs/en/block.md) | [ru](docs/ru/block.md) | [de](docs/de/block.md) | [zh](docs/zh/block.md) |
 | PlantUML | [en](docs/en/plantuml.md) | [ru](docs/ru/plantuml.md) | [de](docs/de/plantuml.md) | [zh](docs/zh/plantuml.md) |
+| Graphviz DOT | [en](docs/en/dot.md) | [ru](docs/ru/dot.md) | [de](docs/de/dot.md) | [zh](docs/zh/dot.md) |
+| D2 | [en](docs/en/d2.md) | [ru](docs/ru/d2.md) | [de](docs/de/d2.md) | [zh](docs/zh/d2.md) |
+| DBML | [en](docs/en/dbml.md) | [ru](docs/ru/dbml.md) | [de](docs/de/dbml.md) | [zh](docs/zh/dbml.md) |
+| Structurizr DSL | [en](docs/en/structurizr.md) | [ru](docs/ru/structurizr.md) | [de](docs/de/structurizr.md) | [zh](docs/zh/structurizr.md) |
+| Wardley map | [en](docs/en/wardley.md) | [ru](docs/ru/wardley.md) | [de](docs/de/wardley.md) | [zh](docs/zh/wardley.md) |
 | Theming | [en](docs/en/theming.md) | [ru](docs/ru/theming.md) | [de](docs/de/theming.md) | [zh](docs/zh/theming.md) |
 
 ## Install
