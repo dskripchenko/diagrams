@@ -1,0 +1,12 @@
+block-beta
+  columns 3
+  front["Frontend"]:3
+  api("API") space db[("Database")]
+  block:workers["Workers"]:3
+    columns 2
+    w1["Mailer"] w2["Reports"]
+  end
+  front --> api
+  api -- "SQL" --> db
+  api -.-> workers
+  style db fill:#fde68a
