@@ -1,5 +1,35 @@
 # @dskripchenko/diagrams
 
+## 1.2.0
+
+### Minor Changes
+
+- 285236a: Eight more Mermaid diagram types: `journey` (user journeys), `quadrantChart`,
+  `kanban`, `requirementDiagram` (drawn with the class renderer),
+  `architecture-beta` (drawn with the flowchart layout), `sankey-beta`,
+  `gitGraph` (LR, TB, BT; merges, cherry-picks, tags) and `block-beta`
+  (grids with spans, spaces and nested blocks). Docs for each in four
+  languages.
+- 01f718a: PlantUML syntax: a source starting with `@startuml` is read as PlantUML —
+  sequence, use case, component, deployment and activity diagrams (`render`,
+  `parse`, `detect`; `detectSyntax`, the `syntax` option, `parsePlantUml`).
+  Sequence diagrams gain icon participants (boundary, control, entity,
+  database, collections, queue — also in Mermaid as `participant A@{ "type":
+"database" }`), dividers, delays, extra space, labelled groups and `hide
+footbox`; flowcharts gain UML and infrastructure shapes, framed containers
+  and UML line ends. Mermaid diagrams render byte for byte as before.
+- 3f14a10: PlantUML C4 (C4-PlantUML: the `!include` of the C4 library sets the level,
+  presentation macros are skipped), mind maps and WBS, Gantt charts, timing
+  diagrams (robust, concise, binary, clock; messages, highlights) and Salt
+  wireframes (grids with borders, buttons, fields, check boxes, radio
+  buttons, drop-downs, tabs, menus, trees, group boxes, scroll panes,
+  separators). Timing and Salt are new diagram types with renderers of their
+  own; `detect()` reports `c4`, `mindmap`, `gantt`, `timing` and `salt`.
+- b321759: PlantUML class, object, state and ER (Information Engineering) diagrams,
+  and swimlanes in activity diagrams. Class and state diagrams go through the
+  Mermaid parsers of those diagrams, with errors pointing at the PlantUML
+  line; `detect()` reports `class`, `state` and `er` for them.
+
 ## 1.1.0
 
 ### Minor Changes
