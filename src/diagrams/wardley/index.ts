@@ -165,6 +165,8 @@ const W = 760
 const H = 500
 const LEFT = 30
 const BOTTOM = 40
+/** Labels end before the map's right border. */
+const RIGHT = LEFT + W - 4
 
 export function renderWardley(d: WardleyMap, measure: TextMeasurer, id: string, title?: string): RenderResult {
   const small = { ...BASE_FONT, size: 12 }
@@ -210,7 +212,9 @@ export function renderWardley(d: WardleyMap, measure: TextMeasurer, id: string, 
     body.push(el('line', { class: 'dg-wardley-evolve', x1: x(c.evolution) + 7, y1: y(c.visibility), x2: x(c.evolve.to) - 8, y2: y(c.visibility), 'marker-end': `url(#${markerId(id, 'arrow')})` }))
     body.push(el('circle', { class: 'dg-wardley-ghost', cx: x(c.evolve.to), cy: y(c.visibility), r: 6 }))
     const l = measureLabel(parseLabel(c.evolve.label ?? c.name), small, measure)
-    body.push(renderLabel(l, x(c.evolve.to) + 10, y(c.visibility) - 10, { anchor: 'start', className: 'dg-wardley-ghost-text' }))
+    const gx = x(c.evolve.to)
+    const left = gx + 10 + l.width > RIGHT
+    body.push(renderLabel(l, left ? gx - 10 : gx + 10, y(c.visibility) - 10, { anchor: left ? 'end' : 'start', className: 'dg-wardley-ghost-text' }))
   }
   // Components on top.
   for (const c of d.components.values()) {
@@ -232,12 +236,16 @@ export function renderWardley(d: WardleyMap, measure: TextMeasurer, id: string, 
     // The inertia bar stands right of the dot: the label goes past it.
     const [dx, dy] = c.label ?? (c.inertia ? [24, -8] : [10, -8])
     const l = measureLabel(wrapLabel(parseLabel(c.name), 160, small, measure), small, measure)
-    parts.push(renderLabel(l, cx + dx, cy + dy, { anchor: 'start', className: 'dg-wardley-text' }))
+    // Near the right edge a label that would run out of the map goes left of the dot
+    // (an explicit `label [dx, dy]` is the author's, and stays).
+    if (!c.label && cx + dx + l.width > RIGHT) {
+      parts.push(renderLabel(l, cx - dx, cy + dy, { anchor: 'end', className: 'dg-wardley-text' }))
+    } else parts.push(renderLabel(l, cx + dx, cy + dy, { anchor: 'start', className: 'dg-wardley-text' }))
     body.push(el('g', { class: 'dg-wardley-component', 'data-id': c.name }, parts))
   }
   for (const n of d.notes) {
     const l = measureLabel(wrapLabel(parseLabel(n.text), 220, small, measure), { ...small, weight: 'bold' }, measure)
-    body.push(renderLabel(l, x(n.evolution), y(n.visibility), { anchor: 'start', className: 'dg-wardley-note' }))
+    body.push(renderLabel(l, Math.min(x(n.evolution), RIGHT - l.width), y(n.visibility), { anchor: 'start', className: 'dg-wardley-note' }))
   }
   for (const a of d.annotations) {
     for (const [vis, evo] of a.points) {

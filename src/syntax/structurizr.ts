@@ -129,7 +129,8 @@ export function parseStructurizr(source: string): C4Diagram {
     // Settings of the views and the workspace without a block (`theme default`, `name "…"`): not drawn.
     if ((frame === 'views' || frame === 'workspace') && !opens) continue
     if (frame === 'view') {
-      if ((m = /^autolayout\s+(lr|rl|tb|bt)\b/i.exec(t)) && view) view.direction = /lr|rl/i.test(m[1]!) ? 'LR' : 'TB'
+      // A bare `autolayout` is top to bottom.
+      if ((m = /^autolayout(?:\s+(lr|rl|tb|bt))?(?:\s|$)/i.exec(t)) && view) view.direction = /lr|rl/i.test(m[1] ?? '') ? 'LR' : 'TB'
       if (opens) stack.push({ what: 'skip' })
       continue
     }
@@ -288,7 +289,18 @@ function toC4(
     const key = `${from}→${to}→${r.description ?? ''}`
     if (seen.has(key)) continue
     seen.add(key)
-    d.relations.push({ from, to, label: r.description ?? '', techn: r.technology, arrows: 'end', hidden: false, line: r.s.line, column: r.s.column })
+    d.relations.push({
+      from,
+      to,
+      label: r.description ?? '',
+      techn: r.technology,
+      arrows: 'end',
+      hidden: false,
+      line: r.s.line,
+      column: r.s.column,
+      // `autolayout` lays the view out along its relationships: each target after its source.
+      ...(view?.direction ? { direction: view.direction === 'LR' ? 'right' : 'down' } as const : {}),
+    })
   }
   return d
 }
