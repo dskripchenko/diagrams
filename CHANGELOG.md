@@ -1,5 +1,12 @@
 # @dskripchenko/diagrams
 
+## 1.3.1
+
+### Patch Changes
+
+- 9746e6d: Left-to-right layouts (Mermaid `flowchart LR`, DOT `rankdir=LR`, PlantUML `left to right direction`…): clusters linked one to the next now follow each other along the direction instead of stacking into a column — an edge from one cluster into another gets a rank for the frames between them. Top-to-bottom layouts are unchanged. Clusters whose nodes genuinely share ranks still stand side by side, as in Graphviz.
+- 9e3947f: Structurizr: `autolayout` now lays a view out along its relationships — with `autolayout lr` each target sits to the right of its source, with a bare `autolayout` or `autolayout tb` below it — instead of only turning the grid. Wardley maps: a component label that would run past the right edge is drawn to the left of its dot (evolving ghosts too), and notes stay inside the map.
+
 ## 1.3.0
 
 ### Minor Changes
