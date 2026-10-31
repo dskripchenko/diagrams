@@ -203,11 +203,31 @@ function layoutCore(input: LayoutInput): LayoutResult {
     if (n.dummy === 'border-top' || n.dummy === 'border-bottom') return parents.get(n.cluster!) ?? null
     return n.cluster
   }
+  // A dummy belongs to the cluster it passes through: up from the source's
+  // cluster while the chain is still within its ranks, then down into the
+  // target's as soon as the chain reaches theirs. Owned by the common cluster
+  // throughout, the chain would have to go around both frames — often on
+  // their far side — before coming back in.
+  const ranksOf = (c: string) => ({ top: g.node(top(c)).rank, bottom: g.node(bottom(c)).rank })
+  const pathBetween = (from: string | null, to: string | null): { path: (string | null)[]; lca: number } => {
+    const common = commonCluster(from, to, parents)
+    const up: (string | null)[] = []
+    for (let c = from; c !== common; c = parents.get(c!) ?? null) up.push(c)
+    const down: (string | null)[] = []
+    for (let c = to; c !== common; c = parents.get(c!) ?? null) down.push(c)
+    return { path: [...up, common, ...down.reverse()], lca: up.length }
+  }
   for (const e of g.edges.slice()) {
     if (e.structural) continue
     const v = g.node(e.v)
     const w = g.node(e.w)
-    const owner = commonCluster(clusterOfEnd(v.id), clusterOfEnd(w.id), parents)
+    const { path, lca } = pathBetween(clusterOfEnd(v.id), clusterOfEnd(w.id))
+    let at = 0
+    const ownerAt = (r: number): string | null => {
+      while (at < lca && r > ranksOf(path[at]!).bottom) at++
+      while (at >= lca && at < path.length - 1 && ranksOf(path[at + 1]!).top <= r) at++
+      return path[at] ?? null
+    }
     const chain = [v.id]
     const span = w.rank - v.rank
     const label = labels.get(e.original)
@@ -220,7 +240,7 @@ function layoutCore(input: LayoutInput): LayoutResult {
         id: `\u0000d${dummyId++}`,
         width: isLabel ? label.width : 0,
         height: isLabel ? label.height : 0,
-        cluster: owner,
+        cluster: ownerAt(r),
         dummy: isLabel ? 'label' : 'edge',
         edge: e.original,
       })

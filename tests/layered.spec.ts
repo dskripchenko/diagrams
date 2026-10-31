@@ -237,5 +237,35 @@ describe('layered layout', () => {
     expect(x('b1')).toBeLessThan(x('c'))
     expect(r.width).toBeGreaterThan(r.height)
   })
-})
 
+  it('an edge between clusters runs between its ends, not around the far side of a frame', () => {
+    // Services in three clusters, as a platform's dependency map draws them.
+    const box = (id: string, cluster?: string) => ({ id, width: 90, height: 30, ...(cluster ? { cluster } : {}) })
+    const edges = [
+      ['api', 'payments'], ['checkout', 'payments'], ['payments', 'antifraud'], ['payments', 'acquirer'], ['payments', 'sbp'],
+      ['payments', 'ledger'], ['refunds', 'payments'], ['refunds', 'ledger'], ['payments', 'kafka'],
+    ].map(([from, to], i) => ({ id: `e${i}`, from: from!, to: to! }))
+    for (const direction of ['TB', 'LR'] as const) {
+      const r = layout({
+        direction,
+        nodes: [
+          box('api', 'edge'), box('checkout', 'edge'),
+          box('payments', 'core'), box('antifraud', 'core'), box('ledger', 'core'), box('refunds', 'core'),
+          box('acquirer', 'out'), box('sbp', 'out'), box('kafka'),
+        ],
+        clusters: ['edge', 'core', 'out'].map((id) => ({ id, label: { width: 40, height: 16 } })),
+        edges,
+      })
+      // Across the direction of flow, a route stays within its ends' span (and a node's width of slack).
+      const across = (p: { x: number; y: number }) => (direction === 'TB' ? p.x : p.y)
+      for (const e of edges) {
+        const a = across(r.nodes.get(e.from)!)
+        const b = across(r.nodes.get(e.to)!)
+        for (const p of r.edges.get(e.id)!.points) {
+          expect(across(p), `${direction} ${e.from}→${e.to}`).toBeGreaterThanOrEqual(Math.min(a, b) - 100)
+          expect(across(p), `${direction} ${e.from}→${e.to}`).toBeLessThanOrEqual(Math.max(a, b) + 100)
+        }
+      }
+    }
+  })
+})
