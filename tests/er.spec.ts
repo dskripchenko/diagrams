@@ -194,7 +194,8 @@ describe('ER rendering', () => {
     // parallel, takes several times that. The quadratic crossing refinement
     // this guards against took 12 s.
     expect(performance.now() - start).toBeLessThan(8000)
-  })
+    // Vitest's own 5 s timeout would cut the test before its limit above.
+  }, 15000)
 
   it('keeps a user fill on the header band only', () => {
     const { svg } = render('erDiagram\n  A {\n    int id\n  }\n  style A fill:#fee,stroke:#f00', opts)
