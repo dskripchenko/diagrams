@@ -221,4 +221,21 @@ describe('layered layout', () => {
     layout(input)
     expect(performance.now() - start).toBeLessThan(3000)
   })
+
+  it('left to right, linked clusters follow one another instead of stacking into a column', () => {
+    const box = (id: string, cluster?: string) => ({ id, width: 60, height: 40, ...(cluster ? { cluster } : {}) })
+    const r = layout({
+      direction: 'LR',
+      nodes: [box('a1', 'A'), box('a2', 'A'), box('b1', 'B'), box('b2', 'B'), box('c')],
+      clusters: [{ id: 'A', label: { width: 20, height: 16 } }, { id: 'B', label: { width: 20, height: 16 } }],
+      edges: [{ id: 'e1', from: 'a1', to: 'b1' }, { id: 'e2', from: 'a2', to: 'b2' }, { id: 'e3', from: 'b1', to: 'c' }],
+    })
+    const x = (id: string) => r.nodes.get(id)!.x
+    expect(x('a1')).toBe(x('a2'))
+    expect(x('b1')).toBe(x('b2'))
+    expect(x('a1')).toBeLessThan(x('b1'))
+    expect(x('b1')).toBeLessThan(x('c'))
+    expect(r.width).toBeGreaterThan(r.height)
+  })
 })
+
