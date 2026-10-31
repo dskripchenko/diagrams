@@ -359,6 +359,13 @@ function layoutCore(input: LayoutInput): LayoutResult {
   const clustersOut = new Map<string, Box>()
   for (const [id, b] of clusterBoxes) clustersOut.set(id, turnBox(b))
 
+  const rankHeight = new Map<number, number>()
+  const rankNodes = new Map<number, WNode[]>()
+  for (const n of g.nodes.values()) {
+    if (n.dummy) continue
+    rankHeight.set(n.rank, Math.max(rankHeight.get(n.rank) ?? 0, n.height))
+    rankNodes.set(n.rank, [...(rankNodes.get(n.rank) ?? []), n])
+  }
   const edges = new Map<string, EdgeRoute>()
   for (const e of input.edges) {
     if (e.from === e.to && !clusters.has(e.from)) {
@@ -371,7 +378,20 @@ function layoutCore(input: LayoutInput): LayoutResult {
       continue
     }
     const inner = chain.slice(1, -1).map((id) => g.node(id))
-    const route: EdgeRoute = { points: inner.map((n) => turn(n)) }
+    // Beside a real node, through its rank straight — as high as the rank's
+    // tallest node — and bending only in the gaps between ranks: through a
+    // single point, the segment to the next rank would cut the neighbour's
+    // corner. Elsewhere a single point keeps the curve smooth.
+    const upward = chain.length > 1 && g.node(chain[chain.length - 1]!).rank < g.node(chain[0]!).rank
+    const route: EdgeRoute = {
+      points: inner.flatMap((n) => {
+        const half = (rankHeight.get(n.rank) ?? 0) / 2
+        const near = (rankNodes.get(n.rank) ?? []).some((o) => Math.abs(o.x - n.x) - o.width / 2 < spacing.nodeSep * 2)
+        if (!near || n.dummy === 'label' || half <= n.height / 2) return [turn(n)]
+        const band = [turn({ x: n.x, y: n.y - half }), turn({ x: n.x, y: n.y + half })]
+        return upward ? band.reverse() : band
+      }),
+    }
     const labelNode = inner.find((n) => n.dummy === 'label')
     if (labelNode) route.label = turn(labelNode)
     if (clusters.has(e.from) || clusters.has(e.to)) {

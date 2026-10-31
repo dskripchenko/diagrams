@@ -93,6 +93,9 @@ export function renderFlowchart(chart: Flowchart, measure: TextMeasurer, id: str
     }
     return d
   }
+  // Titles are drawn above the edges, with a halo of the frame's fill: an
+  // edge entering a frame passes under its title instead of striking it out.
+  const titleEls: SvgElement[] = []
   const clusterEls: SvgElement[] = [...chart.subgraphs.values()]
     .sort((a, b) => depth(a.id) - depth(b.id))
     .map((sub) => {
@@ -101,7 +104,7 @@ export function renderFlowchart(chart: Flowchart, measure: TextMeasurer, id: str
       const l = clusterLabels.get(sub.id)
       // A shaped frame (package, node, cloud…) leaves room for its tab or top above the title.
       const titleTop = sub.kind === 'folder' ? 14 : sub.kind === 'node' ? 14 : sub.kind === 'cloud' ? 12 : sub.kind === 'frame' ? 2 : 6
-      return el('g', { class: 'dg-cluster', 'data-id': sub.id }, [
+      const frame = el('g', { class: 'dg-cluster', 'data-id': sub.id }, [
         sub.kind && sub.kind !== 'rect'
           ? drawShape(sub.kind, box, { className: 'dg-cluster-box', style: cssText(style.shape) })
           : el('rect', {
@@ -113,13 +116,19 @@ export function renderFlowchart(chart: Flowchart, measure: TextMeasurer, id: str
               rx: 4,
               style: cssText(style.shape),
             }),
-        l
-          ? renderLabel(l, sub.kind === 'frame' ? box.x - box.width / 2 + 40 + l.width / 2 : box.x, box.y - box.height / 2 + titleTop + l.height / 2, {
-              className: 'dg-cluster-label',
-              style: cssText(style.text),
-            })
-          : null,
       ])
+      if (l) {
+        const halo: Record<string, string> = style.shape.fill ? { stroke: style.shape.fill } : {}
+        titleEls.push(
+          el('g', { class: 'dg-cluster-title', 'data-id': sub.id }, [
+            renderLabel(l, sub.kind === 'frame' ? box.x - box.width / 2 + 40 + l.width / 2 : box.x, box.y - box.height / 2 + titleTop + l.height / 2, {
+              className: 'dg-cluster-label',
+              style: cssText({ ...halo, ...style.text }),
+            }),
+          ]),
+        )
+      }
+      return frame
     })
 
   // Where an edge meets a node or a cluster frame.
@@ -227,6 +236,7 @@ export function renderFlowchart(chart: Flowchart, measure: TextMeasurer, id: str
   const layers = [
     el('g', { class: 'dg-clusters' }, clusterEls),
     el('g', { class: 'dg-edges' }, edgeEls),
+    el('g', { class: 'dg-cluster-titles' }, titleEls),
     el('g', { class: 'dg-edge-labels' }, labelEls),
     el('g', { class: 'dg-nodes' }, nodeEls),
   ]

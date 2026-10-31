@@ -98,4 +98,14 @@ describe('flowchart parser', () => {
     const { svg } = render('flowchart LR\n  A ~~~ B', opts)
     expect(svg).not.toContain('class="dg-edge"')
   })
+
+  it('draws subgraph titles above the edges, so an edge entering a frame passes under its title', () => {
+    const { svg } = render('flowchart TB\n  a --> b\n  subgraph S [Services]\n    b\n  end', opts)
+    const edges = svg.indexOf('class="dg-edges"')
+    const titles = svg.indexOf('class="dg-cluster-titles"')
+    expect(edges).toBeGreaterThan(-1)
+    expect(titles).toBeGreaterThan(edges)
+    expect(svg.slice(titles)).toContain('Services')
+    expect(svg).toMatch(/\.dg-cluster-title \.dg-cluster-label\{[^}]*paint-order:stroke/)
+  })
 })

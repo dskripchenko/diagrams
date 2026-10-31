@@ -126,6 +126,7 @@ export function stylesheet(rootId: string, extra = ''): string {
     `${r} .dg-node .dg-shape{fill:${v('--dg-node-fill')};stroke:${v('--dg-node-stroke')};stroke-width:1.5px}`,
     `${r} .dg-cluster-box{fill:${v('--dg-cluster-fill')};stroke:${v('--dg-cluster-stroke')};stroke-width:1px}`,
     `${r} .dg-cluster-label{fill:${v('--dg-cluster-text')};font-weight:600}`,
+    `${r} .dg-cluster-title .dg-cluster-label{stroke:${v('--dg-cluster-fill')};stroke-width:4px;stroke-linejoin:round;paint-order:stroke}`,
     `${r} .dg-edge{fill:none;stroke:${v('--dg-line')};stroke-width:1.5px}`,
     `${r} .dg-edge-thick{stroke-width:3.5px}`,
     `${r} .dg-edge-dotted{stroke-dasharray:3 3}`,
