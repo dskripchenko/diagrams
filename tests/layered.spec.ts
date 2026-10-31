@@ -268,4 +268,32 @@ describe('layered layout', () => {
       }
     }
   })
+
+  it('no edge runs through a node it does not connect', () => {
+    // Nodes of mixed sizes: a long edge passes tall neighbours in their ranks.
+    for (let seed = 1; seed <= 30; seed++) {
+      for (const direction of ['TB', 'LR'] as const) {
+        const r = rng(seed)
+        const nodes = Array.from({ length: 12 }, (_, i) => ({ id: `n${i}`, width: 40 + Math.floor(r() * 100), height: 30 + Math.floor(r() * 40) }))
+        const edges = Array.from({ length: 18 }, (_, i) => ({ id: `e${i}`, from: `n${Math.floor(r() * 12)}`, to: `n${Math.floor(r() * 12)}` }))
+        const result = layout({ direction, nodes, edges })
+        for (const e of edges) {
+          if (e.from === e.to) continue
+          const points = result.edges.get(e.id)!.points
+          for (let i = 1; i < points.length; i++) {
+            const [a, b] = [points[i - 1]!, points[i]!]
+            for (const [id, n] of result.nodes) {
+              if (id === e.from || id === e.to) continue
+              for (let t = 0; t <= 1; t += 0.05) {
+                const x = a.x + (b.x - a.x) * t
+                const y = a.y + (b.y - a.y) * t
+                const inside = Math.abs(x - n.x) < n.width / 2 && Math.abs(y - n.y) < n.height / 2
+                expect(inside, `seed ${seed} ${direction}: ${e.from}→${e.to} through ${id}`).toBe(false)
+              }
+            }
+          }
+        }
+      }
+    }
+  })
 })

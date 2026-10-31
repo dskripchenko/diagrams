@@ -265,9 +265,15 @@ export function renderClass(d: ClassDiagram, measure: TextMeasurer, id: string, 
 
   const clusterEls: SvgElement[] = [...d.namespaces.values()].map((ns) => {
     const box = result.clusters.get(ns.id)!
-    const l = clusterLabels.get(ns.id)!
     return el('g', { class: 'dg-cluster dg-namespace', 'data-id': ns.id }, [
       el('rect', { class: 'dg-cluster-box', x: box.x - box.width / 2, y: box.y - box.height / 2, width: box.width, height: box.height, rx: 6 }),
+    ])
+  })
+  // Above the edges, with a halo of the frame's fill (see the flowchart).
+  const titleEls: SvgElement[] = [...d.namespaces.values()].map((ns) => {
+    const box = result.clusters.get(ns.id)!
+    const l = clusterLabels.get(ns.id)!
+    return el('g', { class: 'dg-cluster-title', 'data-id': ns.id }, [
       renderLabel(l, box.x, box.y - box.height / 2 + 6 + l.height / 2, { className: 'dg-cluster-label' }),
     ])
   })
@@ -349,6 +355,7 @@ export function renderClass(d: ClassDiagram, measure: TextMeasurer, id: string, 
     body: [
       el('g', { class: 'dg-clusters' }, clusterEls),
       el('g', { class: 'dg-edges' }, edgeEls),
+      el('g', { class: 'dg-cluster-titles' }, titleEls),
       el('g', { class: 'dg-notes' }, noteEls),
       el('g', { class: 'dg-edge-labels' }, labelEls),
       el('g', { class: 'dg-nodes' }, nodeEls),
