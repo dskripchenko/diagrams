@@ -129,6 +129,11 @@ describe('Structurizr DSL', () => {
     expect(d.elements.get('p')!.external).toBe(true)
     expect(d.relations.map((r) => `${r.from}→${r.to}`).sort()).toEqual(['api→db', 'api→p', 'u→web', 'web→api'])
   })
+  it('lays the view out along its relationships under autolayout', () => {
+    expect(c4('container s {\n      include *\n      autolayout lr\n    }').relations.every((r) => r.direction === 'right')).toBe(true)
+    expect(c4('container s {\n      include *\n      autolayout\n    }').relations.every((r) => r.direction === 'down')).toBe(true)
+    expect(c4('container s {\n      include *\n    }').relations.every((r) => r.direction === undefined)).toBe(true)
+  })
   it('draws a context view with systems only, and a component view inside the container', () => {
     expect(c4('systemContext s {\n      include *\n    }').relations.map((r) => `${r.from}→${r.to}`).sort()).toEqual(['s→p', 'u→s'])
     const d = c4('component api {\n      include *\n    }')
@@ -158,6 +163,11 @@ describe('Wardley maps', () => {
     expect(d.notes[0]).toEqual({ text: 'Hello', visibility: 0.3, evolution: 0.5 })
     expect(d.annotations[0]!.points).toHaveLength(2)
     expect(d.stages).toEqual(['Uncharted', 'Emerging', 'Good', 'Best'])
+  })
+  it('turns a label left of its component near the right edge, so it is not cut off', () => {
+    const svg = render('component Far right component [0.5, 0.97]\ncomponent Middle [0.5, 0.5]', opts).svg
+    expect(svg).toMatch(/<text[^>]*text-anchor="end"[^>]*><tspan[^>]*>Far right component</)
+    expect(svg).not.toMatch(/<text[^>]*text-anchor="end"[^>]*><tspan[^>]*>Middle</)
   })
   it('refuses coordinates out of range and unknown components', () => {
     expect(error('component A [1.4, 0.5]').message).toMatch(/between 0 and 1/)
