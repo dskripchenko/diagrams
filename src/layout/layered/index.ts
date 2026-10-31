@@ -148,6 +148,24 @@ function layoutCore(input: LayoutInput): LayoutResult {
     return id
   }
   const labels = new Map<string, { width: number; height: number }>()
+  const nesting = (c: string | null): number => {
+    let d = 0
+    for (let k = c; k !== null; k = parents.get(k) ?? null) d++
+    return d
+  }
+  // An edge that leaves one cluster and enters another: the border of the
+  // cluster left and that of the cluster entered would share a rank, the two
+  // clusters would overlap in it and be put side by side. Top to bottom that
+  // uses the page's width and reads well; left to right it stacks the
+  // clusters into a column against the direction asked for. There, one more
+  // rank keeps the borders apart and the clusters follow one another.
+  const crossings = (v: string, w: string): number => {
+    if (!horizontal) return 0
+    const cv = g.node(v).cluster
+    const cw = g.node(w).cluster
+    const common = commonCluster(cv, cw, parents)
+    return nesting(cv) > nesting(common) && nesting(cw) > nesting(common) ? 1 : 0
+  }
   for (const e of input.edges) {
     if (e.from === e.to && !clusters.has(e.from)) continue
     const v = endpoint(e.from, true)
@@ -158,7 +176,7 @@ function layoutCore(input: LayoutInput): LayoutResult {
       id: e.id,
       v,
       w,
-      minlen: Math.max(1, e.minlen ?? 1) * 2,
+      minlen: Math.max(1, e.minlen ?? 1) * 2 + crossings(v, w),
       weight: e.weight ?? 1,
       original: e.id,
       reversed: false,
