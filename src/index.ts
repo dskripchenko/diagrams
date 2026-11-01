@@ -249,3 +249,6 @@ export function render(source: string, options: RenderOptions = {}): RenderResul
   const ast = mod.parse(source)
   return mod.render(ast as never, measure, id, options.title, options.today)
 }
+
+export { layoutCommitGraph, renderCommitGraph } from './diagrams/gitgraph/history'
+export type { CommitGraph, CommitGraphOptions, CommitGraphResult, CommitGraphRow, CommitGraphSegment, HistoryCommit } from './diagrams/gitgraph/history'
