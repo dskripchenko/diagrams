@@ -41,6 +41,10 @@ charts and Salt wireframes; Graphviz DOT and D2 (drawn as flowcharts), DBML
 recognised from how a source starts, or given with `render(source, {
 syntax })`.
 
+Beside the diagrams, `renderCommitGraph(commits)` draws the lane graph of a
+real git history as a column that lines up with a list of commits — see
+[Git graph](docs/en/gitgraph.md#a-commit-graph-beside-a-list).
+
 ## Why another renderer
 
 - **Zero dependencies.** Mermaid pulls in d3, dagre, DOMPurify and more —
