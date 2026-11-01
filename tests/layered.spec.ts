@@ -297,3 +297,33 @@ describe('layered layout', () => {
     }
   })
 })
+
+describe('labels and frame titles', () => {
+  const titleBand = (box: Box, height: number) => ({ top: box.y - box.height / 2, bottom: box.y - box.height / 2 + height + 14 })
+  const overlaps = (y: number, h: number, band: { top: number; bottom: number }) => y + h / 2 > band.top && y - h / 2 < band.bottom
+
+  it('keeps the label of an edge entering a titled frame off its title', () => {
+    const r = layout({
+      direction: 'TB',
+      nodes: [{ id: 'A', width: 140, height: 36 }, { id: 'B', width: 230, height: 36, cluster: 'S' }],
+      edges: [{ id: 'e', from: 'A', to: 'B', label: { width: 200, height: 26 } }],
+      clusters: [{ id: 'S', label: { width: 230, height: 22 } }],
+    })
+    const label = r.edges.get('e')!.label!
+    expect(overlaps(label.y, 30, titleBand(r.clusters.get('S')!, 22))).toBe(false)
+  })
+
+  it('leaves an edge leaving a frame below as it was', () => {
+    const input: LayoutInput = {
+      direction: 'TB',
+      nodes: [{ id: 'A', width: 140, height: 36, cluster: 'S' }, { id: 'B', width: 140, height: 36 }],
+      edges: [{ id: 'e', from: 'A', to: 'B', label: { width: 60, height: 26 } }],
+      clusters: [{ id: 'S', label: { width: 100, height: 22 } }],
+    }
+    const r = layout(input)
+    const a = r.nodes.get('A')!
+    const b = r.nodes.get('B')!
+    // Two ranks apart, as any labelled edge: no extra rank for the title.
+    expect(b.y - a.y).toBeLessThan(200)
+  })
+})

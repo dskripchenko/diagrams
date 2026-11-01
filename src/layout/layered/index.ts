@@ -166,6 +166,23 @@ function layoutCore(input: LayoutInput): LayoutResult {
     const common = commonCluster(cv, cw, parents)
     return nesting(cv) > nesting(common) && nesting(cw) > nesting(common) ? 1 : 0
   }
+  // A labelled edge through a titled frame: its middle rank would be the
+  // frame's border, where the title is. One more rank gives the label a rank
+  // of its own beside the border (picked below, off the title ranks).
+  const titleCrossing = (v: string, w: string, labelled: boolean): number => {
+    if (!labelled || horizontal) return 0
+    const cv = g.node(v).cluster
+    const cw = g.node(w).cluster
+    const common = commonCluster(cv, cw, parents)
+    // Only the side with the title: entering at the top for TB; for BT the
+    // title is on the bottom border (on top once turned), which the edge
+    // crosses leaving its source's frame.
+    const side = direction === 'TB' ? cw : cv
+    for (let k = side; k !== null && k !== common; k = parents.get(k) ?? null) {
+      if ((titleRoom.get(k) ?? 0) > 0) return 1
+    }
+    return 0
+  }
   for (const e of input.edges) {
     if (e.from === e.to && !clusters.has(e.from)) continue
     const v = endpoint(e.from, true)
@@ -176,7 +193,7 @@ function layoutCore(input: LayoutInput): LayoutResult {
       id: e.id,
       v,
       w,
-      minlen: Math.max(1, e.minlen ?? 1) * 2 + crossings(v, w),
+      minlen: Math.max(1, e.minlen ?? 1) * 2 + crossings(v, w) + titleCrossing(v, w, !!e.label),
       weight: e.weight ?? 1,
       original: e.id,
       reversed: false,
@@ -217,6 +234,23 @@ function layoutCore(input: LayoutInput): LayoutResult {
     for (let c = to; c !== common; c = parents.get(c!) ?? null) down.push(c)
     return { path: [...up, common, ...down.reverse()], lca: up.length }
   }
+  // The ranks of the frames' titles: a label there would sit on a title.
+  const titleRanks = new Set<number>()
+  for (const c of clusters.keys()) {
+    if ((titleRoom.get(c) ?? 0) === 0) continue
+    if (direction === 'TB') titleRanks.add(g.node(top(c)).rank)
+    if (direction === 'BT') titleRanks.add(g.node(bottom(c)).rank)
+  }
+  // The middle rank, or the nearest one to it that is not a title's.
+  const labelRankOf = (from: number, to: number): number => {
+    const middle = from + Math.floor((to - from) / 2)
+    for (let d = 0; d < to - from; d++) {
+      for (const r of [middle - d, middle + d]) {
+        if (r > from && r < to && !titleRanks.has(r)) return r
+      }
+    }
+    return middle
+  }
   for (const e of g.edges.slice()) {
     if (e.structural) continue
     const v = g.node(e.v)
@@ -229,9 +263,8 @@ function layoutCore(input: LayoutInput): LayoutResult {
       return path[at] ?? null
     }
     const chain = [v.id]
-    const span = w.rank - v.rank
     const label = labels.get(e.original)
-    const labelRank = v.rank + Math.floor(span / 2)
+    const labelRank = label ? labelRankOf(v.rank, w.rank) : -1
     g.removeEdge(e)
     let prev = v.id
     for (let r = v.rank + 1; r < w.rank; r++) {
@@ -463,6 +496,10 @@ function clipAtClusters(route: EdgeRoute, start: Point, end: Point, frames: { fr
  * A cluster with edges crossing its frame stays part of the whole layout.
  */
 export function layout(input: LayoutInput): LayoutResult {
+  return clearTitles(layoutNested(input), input)
+}
+
+function layoutNested(input: LayoutInput): LayoutResult {
   const clusters = input.clusters ?? []
   if (clusters.length === 0) return layoutCore(input)
   const parent = new Map(clusters.map((c) => [c.id, c.parent ?? null]))
@@ -525,7 +562,7 @@ export function layout(input: LayoutInput): LayoutResult {
     for (const k of sub.clusters ?? []) removedClusters.add(k.id)
     removedClusters.add(c.id)
     for (const e of sub.edges) removedEdges.add(e.id)
-    const result = layout(sub)
+    const result = layoutNested(sub)
     const title = c.label && c.label.height > 0 ? c.label.height + 6 : 0
     const width = Math.max(result.width, c.label?.width ?? 0) + pad * 2
     const height = result.height + pad * 2 + title
@@ -541,7 +578,7 @@ export function layout(input: LayoutInput): LayoutResult {
     clusters: clusters.filter((k) => !removedClusters.has(k.id)),
     edges: input.edges.filter((e) => !removedEdges.has(e.id)),
   }
-  const result = layout(outer)
+  const result = layoutNested(outer)
 
   for (const c of extracted) {
     const box = result.nodes.get(c.id)!
@@ -562,6 +599,65 @@ export function layout(input: LayoutInput): LayoutResult {
         end: route.end && move(route.end),
       })
     }
+  }
+  return result
+}
+
+/**
+ * Edge labels off the cluster titles. A title is drawn across the top of its
+ * frame; a label that lands there (an edge entering the frame from above has
+ * its label on the frame's top rank) is slid along its edge to the nearest
+ * spot that clears every title, node and the labels already placed. A label
+ * with no such spot stays where it was.
+ */
+function clearTitles(result: LayoutResult, input: LayoutInput): LayoutResult {
+  const bands: Box[] = []
+  for (const c of input.clusters ?? []) {
+    const box = result.clusters.get(c.id)
+    if (!box || !c.label || c.label.height <= 0) continue
+    const height = c.label.height + 14
+    bands.push({ x: box.x, y: box.y - box.height / 2 + height / 2, width: box.width, height })
+  }
+  if (bands.length === 0) return result
+  const sizes = new Map(input.edges.map((e) => [e.id, e.label]))
+  const hits = (a: Box, b: Box): boolean =>
+    Math.abs(a.x - b.x) * 2 < a.width + b.width && Math.abs(a.y - b.y) * 2 < a.height + b.height
+  const placed: Box[] = []
+  const moving: string[] = []
+  for (const [id, route] of result.edges) {
+    const size = sizes.get(id)
+    if (!route.label || !size || route.selfLoop) continue
+    const box = { ...route.label, width: size.width + 8, height: size.height + 4 }
+    if (bands.some((b) => hits(box, b))) moving.push(id)
+    else placed.push(box)
+  }
+  const obstacles = [...bands, ...result.nodes.values()]
+  for (const id of moving) {
+    const route = result.edges.get(id)!
+    const size = sizes.get(id)!
+    const edge = input.edges.find((e) => e.id === id)!
+    const from = result.nodes.get(edge.from) ?? result.clusters.get(edge.from)
+    const to = result.nodes.get(edge.to) ?? result.clusters.get(edge.to)
+    const path = [route.start ?? from, ...route.points, route.end ?? to].filter((p): p is Point => !!p)
+    // Points along the edge, each with its distance from the label's spot.
+    const origin = route.label!
+    let best: { at: Point; cost: number } | null = null
+    for (let i = 0; i + 1 < path.length; i++) {
+      const a = path[i]!
+      const b = path[i + 1]!
+      const length = Math.hypot(b.x - a.x, b.y - a.y)
+      for (let t = 0; t <= length; t += 4) {
+        const at = { x: a.x + ((b.x - a.x) * t) / length, y: a.y + ((b.y - a.y) * t) / length }
+        const cost = Math.hypot(at.x - origin.x, at.y - origin.y)
+        if (best && cost >= best.cost) continue
+        const box = { ...at, width: size.width + 8, height: size.height + 4 }
+        if (obstacles.some((o) => hits(box, o)) || placed.some((o) => hits(box, o))) continue
+        best = { at, cost }
+      }
+    }
+    if (!best) continue
+    result.edges.set(id, { ...route, label: best.at })
+    placed.push({ ...best.at, width: size.width + 8, height: size.height + 4 })
   }
   return result
 }
