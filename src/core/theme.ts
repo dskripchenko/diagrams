@@ -117,6 +117,15 @@ export function v(name: keyof typeof VARIABLES | string): string {
  * The stylesheet embedded in each SVG, scoped to its root id so two diagrams
  * on one page cannot restyle each other.
  */
+/**
+ * A wider halo for frame titles, where the diagram has any: the edges pass
+ * under a title, and the default halo leaves them showing between the
+ * letters. Only then, so diagrams without frames render as before.
+ */
+export function frameTitleCss(rootId: string): string {
+  return `#${rootId} .dg-cluster-title .dg-cluster-label{stroke-width:10px}`
+}
+
 export function stylesheet(rootId: string, extra = ''): string {
   const r = `#${rootId}`
   return [

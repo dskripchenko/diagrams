@@ -21,7 +21,7 @@ import {
   type MeasuredLabel,
   type TextMeasurer,
 } from '../../core/text'
-import { BASE_FONT, v } from '../../core/theme'
+import { BASE_FONT, frameTitleCss, v } from '../../core/theme'
 import type { LayoutCluster, LayoutEdge, LayoutNode } from '../../layout/layered'
 import { edgeLabel, layoutBoxes, roundedRect, splitFill, type Attachment, type BoxEdge } from '../boxes'
 import type { ClassDiagram, ClassMember, ClassNode, ClassRelation, RelationEnd } from './parser'
@@ -342,6 +342,7 @@ export function renderClass(d: ClassDiagram, measure: TextMeasurer, id: string, 
     `${r} .dg-note-box{fill:${v('--dg-note-fill')};stroke:${v('--dg-note-stroke')}}`,
     `${r} .dg-note-text{fill:${v('--dg-note-text')}}`,
     `${r} .dg-note-link{fill:none;stroke:${v('--dg-note-stroke')};stroke-dasharray:3 3}`,
+    titleEls.length > 0 ? frameTitleCss(id) : '',
   ].join('')
 
   return documentSvg({

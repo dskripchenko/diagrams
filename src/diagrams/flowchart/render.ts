@@ -18,7 +18,7 @@ import {
   type MeasuredLabel,
   type TextMeasurer,
 } from '../../core/text'
-import { BASE_FONT, v } from '../../core/theme'
+import { BASE_FONT, frameTitleCss, v } from '../../core/theme'
 import { layout, type LayoutEdge } from '../../layout/layered'
 import type { EdgeEnd, FlowEdge, Flowchart } from './parser'
 
@@ -231,6 +231,7 @@ export function renderFlowchart(chart: Flowchart, measure: TextMeasurer, id: str
     // Only when used: diagrams without them render byte for byte as before.
     shapes.has('note') ? `#${id} .dg-node-note .dg-shape{fill:${v('--dg-note-fill')};stroke:${v('--dg-note-stroke')}}#${id} .dg-node-note .dg-label{fill:${v('--dg-note-text')}}` : '',
     [...shapes].some((k) => FIGURE_SHAPES.has(k)) ? `#${id} .dg-shape-line{fill:none}` : '',
+    titleEls.length > 0 ? frameTitleCss(id) : '',
   ].join('')
 
   const layers = [
